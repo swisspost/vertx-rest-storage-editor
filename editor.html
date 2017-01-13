@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title></title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="vendor/bootstrap/css/bootstrap.min.css">
+        <link rel="stylesheet" href="vendor/bootstrap3-dialog/css/bootstrap-dialog.min.css">
+        <link rel="stylesheet" href="vendor/font-awesome/css/font-awesome.min.css">
+        <link href="app/css/editor.css" rel="stylesheet">
+
+        <script src="vendor/jquery.js"></script>
+        <script src="vendor/jquery.cookie.js"></script>
+        <script src="vendor/tv4.js"></script>
+        <script src="vendor/bootstrap.js"></script>
+        <script src="vendor/bootstrap3-dialog/js/bootstrap-dialog.min.js"></script>
+    </head>
+    <body>
+        <div id="main">
+            <div id="control">
+                <a id="title" href=""></a>
+                <div id="toolbar">
+                    <button id="reformat" title="Reformat (Ctrl-Shift-F)" class="btn btn-default"><i class="fa fa-recycle"></i></button>
+                    <button id="header-button" title="Add Header" class="btn btn-default"><i class="fa fa-list"></i></button>
+                    <div id="new-header-container" class="input-append" style="margin-bottom: 0px">
+                        <form id="new-header-form" action="javascript:">
+                            <fieldset id="new-header-fieldset">
+                                <input autocomplete="on" id="new-header" type="text" placeholder="New Header&hellip;">
+                                <button id="header-button-active" class="btn btn-default active"><i class="fa fa-list"></i></button>
+                            </fieldset>
+                        </form>
+                    </div>
+                    <script>document.getElementById("new-header-container").style.display="none";</script>
+                    <div class="btn-group mode-normal">
+                        <button id="save" title="Save (Ctrl-S)" class="btn btn-default"><i class="fa fa-check"></i></button>
+                        <button id="delete" title="Delete" class="btn btn-default"><i class="fa fa-trash"></i></button>
+                        <button id="reload" title="Reload" class="btn btn-default"><i class="fa fa-refresh"></i></button>
+                    </div>
+                    <button id="post" title="Post (Ctrl-Enter)" class="btn btn-default mode-post"><i class="fa fa-play"></i></button>
+                    <button id="mode-switch" title="POST mode" class="btn btn-default"><i class="fa fa-envelope"></i></button>
+                </div>
+                <div id="header-bar">
+                    <div id="headers">
+                    </div>
+                </div>
+            </div>
+            <div id="editor"></div>
+            <div id="log-container">
+                <div id="splitter"></div>
+                <div id="log"></div>
+            </div>
+        </div>
+        <script src="vendor/ace/ace.js"></script>
+        <script src="app/js/types.js"></script>
+        <script src="app/js/validate.js"></script>
+        <script src="app/js/editor/editor.js"></script>
+    </body>
+</html>
