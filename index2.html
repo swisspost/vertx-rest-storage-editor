@@ -8,18 +8,17 @@
         <link rel="stylesheet" href="vendor/jquery-ui.min.css" />
         <link rel="stylesheet" href="app/css/proton/style.min.css" />
         <link rel="stylesheet" href="vendor/bootstrap/css/bootstrap.min.css">
-        <link rel="stylesheet" href="vendor/bootstrap3-dialog/css/bootstrap-dialog.min.css">
+        <!--<link rel="stylesheet" href="vendor/bootstrap3-dialog/css/bootstrap-dialog.min.css">-->
         <link rel="stylesheet" href="vendor/font-awesome/css/font-awesome.min.css">
         <!--<link rel="stylesheet" href="app/css/tree.css">-->
 
         <script src="vendor/jquery.js"></script>
         <script src="vendor/jquery-ui.js"></script>
-        <script src="vendor/bootstrap.js"></script>
-        <script src="vendor/bootstrap3-dialog/js/bootstrap-dialog.min.js"></script>
+        <!--<script src="vendor/bootstrap.js"></script>-->
+        <!--<script src="vendor/bootstrap3-dialog/js/bootstrap-dialog.min.js"></script>-->
         <script src="vendor/jstree/jstree.min.js"></script>
     </head>
     <body>
-        <!--<div id="oli" style="background-color: #2e6da4; width: 200px; height: 100px;">Gugus</div>-->
         <div style="width: 100vw; height: 100vh; display: flex">
             <div id="treeResizable" style="background-color: #EEE; width: 350px;">
                 <div id="tree" style="height:100%; overflow: auto;"></div>
@@ -31,6 +30,16 @@
                     <div id="editor-hide-iframe-overlay" style="position:absolute; top:0; left:0; width: 100%; height: 100%; background-color:rgba(255,255,255,0.5); display: none;"></div>
                 </div>
             </div>
+        </div>
+
+        <div id="dialogCreateResource" title="Create resource">
+            <form action="javascript:createResource();">
+                <label for="nameOfResourceToCreate" id="nameOfResourceToCreateBaseUrl"></label>
+                <br>
+                <input id="nameOfResourceToCreate" type="text" style="width:100%">
+                <br>
+                <input type="submit" value="Create">
+            </form>
         </div>
     <!--<section>-->
         <!--<article id="toolbox" class="container">-->
