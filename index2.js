@@ -33,6 +33,8 @@ function hash(name, value) {
     history.replaceState(undefined, undefined, hash);
 }
 
+var autoExpandToAndSelectPath = hash('selected');
+
 function createResource() {
     'use strict';
     var relPath = $('#nameOfResourceToCreate').val();
@@ -47,9 +49,27 @@ function createResource() {
         type: 'PUT',
         data: '{}'
     }).then(function () {
+        autoExpandToAndSelectPath = url;
         var jstree = $('#tree').jstree();
+        jstree.deselect_all();
         jstree.refresh_node(basePath);
         $('#dialogCreateResource').parent().effect('highlight', {color: '#8F8'}, 200);
+    });
+}
+
+function deleteResource() {
+    'use strict';
+    var url = $('#nameOfResourceToDelete').text();
+    $.ajax({
+        url: url,
+        type: 'DELETE'
+    }).then(function () {
+        var jstree = $('#tree').jstree();
+        var node = jstree.get_node(url);
+        node = jstree.get_parent(node);
+        jstree.refresh_node(node);
+        jstree.select_node(node);
+        $('#dialogDeleteResource').dialog('close');
     });
 }
 
@@ -79,6 +99,11 @@ $(function ($) {
     }
 
     $('#dialogCreateResource').dialog({
+        autoOpen: false,
+        modal: true,
+        width: '50vw'
+    });
+    $('#dialogDeleteResource').dialog({
         autoOpen: false,
         modal: true,
         width: '50vw'
@@ -174,14 +199,11 @@ $(function ($) {
                 if (!node.data.isLeaf) {
                     m.create = {
                         label: 'Create resource',
-                        action: function(e) {
-                            var node2= jstree.get_node(node, true)
-                            console.log(e);
-                            console.log(node2);
+                        action: function() {
                             $('#dialogCreateResource').dialog('option', 'position', {
                                 my: 'left center',
                                 at: 'left+150 top',
-                                of: node2,
+                                of: jstree.get_node(node, true),
                                 collision: 'fit'
                             }).dialog('open');
                             $('#nameOfResourceToCreateBaseUrl').text(node.id);
@@ -190,7 +212,16 @@ $(function ($) {
                     };
                 }
                 m.delete = {
-                    label: node.data.isLeaf ? 'Delete resource' : 'Delete whole tree'
+                    label: node.data.isLeaf ? 'Delete resource' : 'Delete whole tree',
+                    action: function() {
+                        $('#dialogDeleteResource').dialog('option', 'position', {
+                            my: 'left center',
+                            at: 'left+150 top',
+                            of: jstree.get_node(node, true),
+                            collision: 'fit'
+                        }).dialog('open');
+                        $('#nameOfResourceToDelete').text(node.id);
+                    }
                 };
                 return m;
             }
@@ -206,7 +237,6 @@ $(function ($) {
         }
     });
 
-    var initialSelectedNodeToAutomaticallyOpen = hash('selected');
     $('#tree').on('after_open.jstree', function (e, data) {
         var node = data.node;
         jstree.set_icon(node,'fa fa-folder-open');  // show the 'open' folder icon
@@ -214,21 +244,21 @@ $(function ($) {
          * on page load we open the tree node-by-node to a preselected path
          * so we can 'stabilize' the view on "Browser refresh"
          *************************************************************************************************************/
-        if (initialSelectedNodeToAutomaticallyOpen) {
+        if (autoExpandToAndSelectPath) {
             for (var i = 0; i < node.children.length; i++) {
                 var c = node.children[i];
-                if (initialSelectedNodeToAutomaticallyOpen === c) {
+                if (autoExpandToAndSelectPath === c) {
                     // found the target
                     node = c;
                     break;
-                } else if (c.endsWith('/') && initialSelectedNodeToAutomaticallyOpen.indexOf(c) === 0) {
+                } else if (c.endsWith('/') && autoExpandToAndSelectPath.indexOf(c) === 0) {
                     // this is a childnode which matches the searched url - so open it (and we will be called again)
                     jstree.open_node(c);
                     return;
                 }
             }
             // no children matches the path _or_ perfect match found
-            initialSelectedNodeToAutomaticallyOpen = null;
+            autoExpandToAndSelectPath = null;
             jstree.select_node(node);
             var offset = jstree.get_node(node, true).offset();
             var height = $('#tree').height();
