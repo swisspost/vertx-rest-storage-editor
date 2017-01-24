@@ -35,6 +35,28 @@ function hash(name, value) {
 
 var autoExpandToAndSelectPath = hash('selected');
 
+function findNodesByUrl(searchUrl) {
+    'use strict';
+    var nodes = [];
+    var jstree = $('#tree').jstree();
+    function recurse(nodeId) {
+        var node = jstree.get_node(nodeId)
+        if (node.data) {
+            if (node.data.url === searchUrl) {
+                nodes.push(node);
+                return;
+            }
+            if (searchUrl.indexOf(node.data.url) != 0) {
+                return;
+            }
+        }
+        node.children.forEach(recurse);
+    }
+    recurse('#');
+    return nodes;
+}
+
+
 function createResource() {
     'use strict';
     var relPath = $('#nameOfResourceToCreate').val();
@@ -43,15 +65,19 @@ function createResource() {
         return;
     }
     var basePath = $('#nameOfResourceToCreateBaseUrl').text();
-    var url =  basePath + relPath;
+    var url = basePath + relPath;
     $.ajax({
         url: url,
         type: 'PUT',
         data: '{}'
     }).then(function () {
+        var affectedParentNodes = findNodesByUrl(basePath);
         autoExpandToAndSelectPath = url;
         var jstree = $('#tree').jstree();
         jstree.deselect_all();
+        affectedParentNodes.forEach(function(node) {
+            jstree.refresh_node(node);
+        });
         jstree.refresh_node(basePath);
         $('#dialogCreateResource').parent().effect('highlight', {color: '#8F8'}, 200);
     });
@@ -65,10 +91,12 @@ function deleteResource() {
         type: 'DELETE'
     }).then(function () {
         var jstree = $('#tree').jstree();
-        var node = jstree.get_node(url);
-        node = jstree.get_parent(node);
-        jstree.refresh_node(node);
-        jstree.select_node(node);
+        var affectedNodes = findNodesByUrl(url);
+        affectedNodes.forEach(function(node) {
+            node = jstree.get_parent(node);
+            jstree.refresh_node(node);
+            jstree.select_node(node);
+        });
         $('#dialogDeleteResource').dialog('close');
     });
 }
@@ -117,9 +145,8 @@ $(function ($) {
         treeBase += '/';
     }
     var rootNodes = [{
-        id: treeBase,
         text: treeBase,
-        data: {},
+        data: {url: treeBase},
         icon: 'fa fa-folder',
         children: true
     }];
@@ -149,16 +176,15 @@ $(function ($) {
                     return;
                 }
 
-                var nodeUrl = node.id;
+                var nodeUrl = node.data.url;
                 var childrenNodes = [];
                 function addEntriesToParentNode(entries) {
                     entries.forEach(function (c) {
                         var isLeaf = !c.endsWith('/');
                         var childNode = {
-                            id: nodeUrl + c,
                             text: c,
                             data: {
-                                isLeaf: isLeaf
+                                url: nodeUrl + c
                             },
                             icon: isLeaf ? 'fa fa-file-text-o' : 'fa fa-folder',
                             children: !isLeaf   // to force jstree to show a '+' icon and to be able to open a not-yet loaded tree
@@ -176,10 +202,9 @@ $(function ($) {
                 }).fail(function (err) {
                     // show a single red error children on AJAX error
                     childrenNodes.push({
-                        id: nodeUrl + '[errorIndicator]',
                         text: err.responseText || err.statusText,
-                        data: {isLeaf: true},
-                        li_attr: { style:'color: red;'},
+                        data: {url: nodeUrl + '[errorIndicator]'},
+                        li_attr: {style: 'color: red;'},
                         icon: null
                     });
                 }).always(function() {
@@ -195,32 +220,49 @@ $(function ($) {
             show_at_node: false,
             items: function (node) {
                 var m = {};
-                m.title = {label: node.id, separator_after: true, _disabled: true};
-                if (!node.data.isLeaf) {
+                m.title = {label: node.data.url, separator_after: true, _disabled: true};
+                m.pin = {
+                    label: node.data.pinned ? 'Unpin this node' : 'Pin this node',
+                    icon: 'fa fa-thumb-tack',
+                    separator_after: true,
+                    action: function () {
+                        if(node.data.pinned) {
+                            $('#tree').jstree().delete_node(node);
+                        } else {
+                            $('#tree').jstree().create_node('#', {
+                                text: node.data.url,
+                                icon: 'fa fa-thumb-tack',
+                                data: {url: node.data.url, pinned: true}
+                           });
+                        }
+                    }
+                };
+                if (node.data.url.endsWith('/')) {
                     m.create = {
                         label: 'Create resource',
                         action: function() {
                             $('#dialogCreateResource').dialog('option', 'position', {
                                 my: 'left center',
                                 at: 'left+150 top',
-                                of: jstree.get_node(node, true),
+                                of: $('#tree').jstree().get_node(node, true),
                                 collision: 'fit'
                             }).dialog('open');
-                            $('#nameOfResourceToCreateBaseUrl').text(node.id);
+                            $('#nameOfResourceToCreateBaseUrl').text(node.data.url);
                             $('#nameOfResourceToCreate').val('');
                         }
                     };
                 }
                 m.delete = {
-                    label: node.data.isLeaf ? 'Delete resource' : 'Delete whole tree',
+                    label: node.data.url.endsWith('/') ? 'Delete whole tree' : 'Delete resource',
+                    icon: 'fa fa-trash',
                     action: function() {
                         $('#dialogDeleteResource').dialog('option', 'position', {
                             my: 'left center',
                             at: 'left+150 top',
-                            of: jstree.get_node(node, true),
+                            of: $('#tree').jstree().get_node(node, true),
                             collision: 'fit'
                         }).dialog('open');
-                        $('#nameOfResourceToDelete').text(node.id);
+                        $('#nameOfResourceToDelete').text(node.data.url);
                     }
                 };
                 return m;
@@ -246,14 +288,15 @@ $(function ($) {
          *************************************************************************************************************/
         if (autoExpandToAndSelectPath) {
             for (var i = 0; i < node.children.length; i++) {
-                var c = node.children[i];
-                if (autoExpandToAndSelectPath === c) {
+                var childNode = jstree.get_node(node.children[i]);
+                var childUrl = childNode.data.url;
+                if (autoExpandToAndSelectPath === childUrl) {
                     // found the target
-                    node = c;
+                    node = childNode;
                     break;
-                } else if (c.endsWith('/') && autoExpandToAndSelectPath.indexOf(c) === 0) {
-                    // this is a childnode which matches the searched url - so open it (and we will be called again)
-                    jstree.open_node(c);
+                } else if (childUrl.endsWith('/') && autoExpandToAndSelectPath.indexOf(childUrl) === 0) {
+                    // this is a child-node which matches the searched url - so open it (and we will be called again)
+                    jstree.open_node(childNode);
                     return;
                 }
             }
@@ -272,10 +315,10 @@ $(function ($) {
     $('#tree').on('select_node.jstree', function (e, data) {
         var node = data.node;
         $('#editor-iframe').attr('src', '');
-        hash('selected', node.id);
-        if (node.data.isLeaf) {
-            if (!node.id.endsWith('[errorIndicator]')) {
-                openInEditor(node.id); // open in editor
+        hash('selected', node.data.url);
+        if (!node.data.url.endsWith('/')) {
+            if (!node.data.url.endsWith('[errorIndicator]')) {
+                openInEditor(node.data.url); // open in editor
             }
         } else if (data.node.state.loaded) {
             // hm... better to close the node - we can reload by open it again (as 'close' removes the childs)
