@@ -358,9 +358,7 @@ $(function ($) {
         jstree.delete_node(node);
         var reincarnationNode = {
             text: node.text,
-            data: {
-                url: node.data.url
-            },
+            data: node.data,
             state: {
                 selected: node.state.selected
             },
