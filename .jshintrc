@@ -39,6 +39,7 @@
         "angular"              : false,
         "moment"               : false,
         "Hammer"               : false,
+        "window"               : true,
 
         // testing
         "inject"               : false,

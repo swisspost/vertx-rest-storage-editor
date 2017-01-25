@@ -30,7 +30,7 @@ function hash(name, value) {
     }
     hash[name] = value;
     hash = '#' + JSON.stringify(hash);
-    history.replaceState(undefined, undefined, hash);
+    window.history.replaceState(undefined, undefined, hash);
 }
 
 var autoExpandToAndSelectPath = hash('selected');
@@ -350,10 +350,24 @@ $(function ($) {
         }
     });
     $('#tree').on('after_close.jstree', function (e, data) {
-        // remove children to force fresh reload when opening node again
+        // we only want to remove children to force fresh reload when opening node again
+        // but this is slow in jstree --> we remove the whole node (which is quite fast) and re-insert a reincarnation of it @same position
         var node = data.node;
-        node.state.loaded = false;
-        jstree.delete_node(node.children);
+        var parentNode = jstree.get_node(jstree.get_parent(node));
+        var pos = parentNode.children.indexOf(node.id);
+        jstree.delete_node(node);
+        var reincarnationNode = {
+            text: node.text,
+            data: {
+                url: node.data.url
+            },
+            state: {
+                selected: node.state.selected
+            },
+            icon: node.icon,
+            children: true
+        };
+        jstree.create_node(parentNode, reincarnationNode, pos);
     });
 });
 
