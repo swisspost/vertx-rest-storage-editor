@@ -151,6 +151,19 @@ $(function ($) {
         children: true
     }];
 
+    try {
+        var pinnedUrls = JSON.parse(window.localStorage.getItem('pinnedUrls'));
+       pinnedUrls.forEach(function(url) {
+           rootNodes.push({
+               text: url,
+               data: {url: url, pinned: true},
+               children: url.endsWith('/')
+           });
+       });
+    } catch (ignore) {
+    }
+
+
     $('#tree').jstree({
         core: {
             /**************************************************************************************************************
@@ -226,7 +239,7 @@ $(function ($) {
                     icon: 'fa fa-thumb-tack',
                     separator_after: true,
                     action: function () {
-                        if(node.data.pinned) {
+                        if (node.data.pinned) {
                             $('#tree').jstree().delete_node(node);
                         } else {
                             $('#tree').jstree().create_node('#', {
@@ -235,6 +248,15 @@ $(function ($) {
                                 data: {url: node.data.url, pinned: true}
                            });
                         }
+                        // store list of pinned urls to localStorage
+                        var pinnedUrls = [];
+                        jstree.get_node('#').children.forEach(function(c) {
+                            var n = jstree.get_node(c);
+                            if (n.data.pinned) {
+                                pinnedUrls.push(n.data.url);
+                            }
+                        });
+                        window.localStorage.setItem('pinnedUrls', JSON.stringify(pinnedUrls));
                     }
                 };
                 if (node.data.url.endsWith('/')) {
@@ -275,7 +297,7 @@ $(function ($) {
         var node = data.node;
         if (node.id === '#') {
             // open the root nodes automatically
-            jstree.open_node(node.children);
+            jstree.open_node(node.children[0]);
         }
     });
 
