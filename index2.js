@@ -1,3 +1,6 @@
+/*
+ * see http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
+ */
 function getParameterByName(name) {
     'use strict';
     var url = window.location.href;
@@ -135,6 +138,9 @@ $(function ($) {
         $('#treeResizable').width(width);
     }
 
+    /**************************************************************************************************************
+     * Setup three modal dialogs
+     *************************************************************************************************************/
     $('#dialogSearchResource').dialog({
         autoOpen: false,
         modal: true,
@@ -155,8 +161,27 @@ $(function ($) {
     });
 
     /**************************************************************************************************************
-     * Setup jstree (see http://www.jstree.com)
+     * Helper to map Vertx-Rest-Storage proprietary JSON-format for 'directories' to a flat array of strings
      *************************************************************************************************************/
+    function flattenToArray(data) {
+        var childrenUrls = [];
+        if (typeof data === 'string') {
+            return childrenUrls;
+        }
+        for (var property in data) {
+            if (data.hasOwnProperty(property)) {
+                childrenUrls = childrenUrls.concat(data[property]);
+            }
+        }
+        return childrenUrls;
+    }
+
+    /**************************************************************************************************************
+     * Setup jstree (see http://www.jstree.com)
+     * Root nodes and more
+     *************************************************************************************************************/
+    var jstree;
+
     var treeBase = getParameterByName('treeBase');
     if (!treeBase.endsWith('/')) {
         treeBase += '/';
@@ -173,7 +198,6 @@ $(function ($) {
         icon: 'fa fa-star-o',
         children: true
     }];
-
     var bookmarkUrls;
     try {
         bookmarkUrls = JSON.parse(window.localStorage.getItem('bookmarkUrls'));
@@ -183,21 +207,6 @@ $(function ($) {
         bookmarkUrls = [];
     }
 
-
-    function flattenToArray(data) {
-        var childrenUrls = [];
-        if (typeof data === 'string') {
-            return childrenUrls;
-        }
-        for (var property in data) {
-            if (data.hasOwnProperty(property)) {
-                childrenUrls = childrenUrls.concat(data[property]);
-            }
-        }
-        return childrenUrls;
-    }
-
-    var jstree;
     $('#tree').jstree({
         core: {
             /**************************************************************************************************************
@@ -247,7 +256,7 @@ $(function ($) {
                 }
 
                 $.get(nodeUrl, function success(data) {
-                    node.data.childrenNames = flattenToArray(data);
+                    node.data.childrenNames = flattenToArray(data); // childrenNames are a 'cache' to enable faster paging
                     node.data.pageOffset = 0;
                     childrenNodes = page(node);
                 }).fail(function (err) {
@@ -396,6 +405,10 @@ $(function ($) {
 
     jstree = $('#tree').jstree();
 
+    /**************************************************************************************************************
+     * The 'paging' function: If a node has more than 500 children, only 500 of them are 'rendered' to the jstree
+     * Additionally we then add two more nodes: the two "Blue Page Up/Down virtual entries"
+     *************************************************************************************************************/
     function page(node) {
         var nodeUrl = node.data.url;
 
@@ -447,6 +460,10 @@ $(function ($) {
     }
 
 
+    /**************************************************************************************************************
+     * To initially open all childrens of the (virtual) jstree root node.
+     * Those children are in fact 'our' real-and-visible root nodes
+     *************************************************************************************************************/
     $('#tree').on('load_node.jstree', function (e, data) {
         var node = data.node;
         if (node.id === '#') {
@@ -499,6 +516,10 @@ $(function ($) {
     });
     $('#tree').on('select_node.jstree', function (e, data) {
         var node = data.node;
+
+        /**************************************************************************************************************
+         * Handle clicks on the two "Blue Page Up/Down virtual entries"
+         *************************************************************************************************************/
         if (node.data.pageOffsetAddition) {
             var parentNode = jstree.get_node(node.parent);
             var newOffset = parentNode.data.pageOffset + node.data.pageOffsetAddition;
@@ -526,6 +547,10 @@ $(function ($) {
             jstree.open_node(node); // click on node-text to open subtree
         }
     });
+    /**************************************************************************************************************
+     * On close remove all children stuff - so we force a reload when the subtree is opened again
+     * No need for other weird reload Buttons or so...
+     *************************************************************************************************************/
     $('#tree').on('after_close.jstree', function (e, data) {
         // we only want to remove children to force fresh reload when opening node again
         var node = data.node;
