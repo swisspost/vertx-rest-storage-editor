@@ -46,7 +46,7 @@ function findNodesByUrl(searchUrl) {
                 nodes.push(node);
                 return;
             }
-            if (searchUrl.indexOf(node.data.url) != 0) {
+            if (searchUrl.indexOf(node.data.url) !== 0) {
                 return;
             }
         }
@@ -76,9 +76,10 @@ function createResource() {
         var jstree = $('#tree').jstree();
         jstree.deselect_all();
         affectedParentNodes.forEach(function(node) {
+            node.data.childrenNames = null;
             jstree.refresh_node(node);
         });
-        jstree.refresh_node(basePath);
+        // jstree.refresh_node(basePath);
         $('#dialogCreateResource').parent().effect('highlight', {color: '#8F8'}, 200);
     });
 }
@@ -92,10 +93,11 @@ function deleteResource() {
     }).then(function () {
         var jstree = $('#tree').jstree();
         var affectedNodes = findNodesByUrl(url);
-        affectedNodes.forEach(function(node) {
-            node = jstree.get_parent(node);
-            jstree.refresh_node(node);
-            jstree.select_node(node);
+        affectedNodes.forEach(function (node) {
+            jstree.delete_node(node);
+            var parentNode = jstree.get_node(node.parent);
+            parentNode.data.childrenNames = null;
+            jstree.refresh_node(parentNode);
         });
         $('#dialogDeleteResource').dialog('close');
     });
@@ -144,23 +146,26 @@ $(function ($) {
     if (!treeBase.endsWith('/')) {
         treeBase += '/';
     }
-    var rootNodes = [{
+    var ROOT_NODES = [{
         text: treeBase,
         data: {url: treeBase},
         icon: 'fa fa-folder',
         children: true
+    }, {
+        id: '#bookmarkFolder',
+        text: 'Bookmarked URLs',
+        data: {url: ''},
+        icon: 'fa fa-star-o',
+        children: true
     }];
 
+    var bookmarkUrls;
     try {
-        var pinnedUrls = JSON.parse(window.localStorage.getItem('pinnedUrls'));
-       pinnedUrls.forEach(function(url) {
-           rootNodes.push({
-               text: url,
-               data: {url: url, pinned: true},
-               children: url.endsWith('/')
-           });
-       });
+        bookmarkUrls = JSON.parse(window.localStorage.getItem('bookmarkUrls'));
     } catch (ignore) {
+    }
+    if (!bookmarkUrls) {
+        bookmarkUrls = [];
     }
 
     var jstree;
@@ -183,9 +188,23 @@ $(function ($) {
              * We distinguish from vertx-rest-storage with a trailing slash (i.e. "img/" is a node-with-children while" "img" is a resource
              *************************************************************************************************************/
             data: function (node, callback) {
+                var childrenNodes;
+
                 if (node.id === '#') {
                     // initialize the one-and-only rood node
-                    callback.call(this, rootNodes);
+                    callback.call(this, ROOT_NODES);
+                    return;
+                } else if (node.id === '#bookmarkFolder') {
+                    childrenNodes = bookmarkUrls.map(function (url) {
+                        var isLeaf = !url.endsWith('/');
+                        return {
+                            text: url,
+                            data: {url: url},
+                            icon: isLeaf ? 'fa fa-file-text-o' : 'fa fa-folder',
+                            children: !isLeaf   // force jstree to show a '+' icon and to be able to open a not-yet loaded tree
+                        };
+                    });
+                    callback.call(this, childrenNodes);
                     return;
                 }
 
@@ -200,9 +219,9 @@ $(function ($) {
                 }
 
                 var nodeUrl = node.data.url;
-                var childrenNodes;
 
                 if (node.data.childrenNames) {
+                    // already loaded? This happens when we use page up/down
                     childrenNodes = page(node);
                     callback.call(this, childrenNodes);
                     return;
@@ -234,29 +253,23 @@ $(function ($) {
             items: function (node) {
                 var m = {};
                 m.title = {label: node.data.url, separator_after: true, _disabled: true};
-                m.pin = {
-                    label: node.data.pinned ? 'Unpin this node' : 'Pin this node',
+                var isBookmark = node.parent === '#bookmarkFolder';
+                m.bookmark = {
+                    label: isBookmark ? 'remove from Bookmarks' : 'Bookmark this node',
                     icon: 'fa fa-thumb-tack',
                     separator_after: true,
                     action: function () {
-                        if (node.data.pinned) {
-                            $('#tree').jstree().delete_node(node);
-                        } else {
-                            $('#tree').jstree().create_node('#', {
-                                text: node.data.url,
-                                icon: 'fa fa-thumb-tack',
-                                data: {url: node.data.url, pinned: true}
-                           });
-                        }
-                        // store list of pinned urls to localStorage
-                        var pinnedUrls = [];
-                        jstree.get_node('#').children.forEach(function(c) {
-                            var n = jstree.get_node(c);
-                            if (n.data.pinned) {
-                                pinnedUrls.push(n.data.url);
+                        if (isBookmark) {
+                            var idx = bookmarkUrls.indexOf(node.data.url);
+                            if (idx >= 0) {
+                                bookmarkUrls.splice(idx, 1);
                             }
-                        });
-                        window.localStorage.setItem('pinnedUrls', JSON.stringify(pinnedUrls));
+                        } else {
+                            bookmarkUrls.push(node.data.url);
+                        }
+                        // store list of bookmarked urls to localStorage
+                        window.localStorage.setItem('bookmarkUrls', JSON.stringify(bookmarkUrls));
+                        jstree.refresh_node('#bookmarkFolder');
                     }
                 };
                 if (node.data.url.endsWith('/')) {
@@ -341,13 +354,17 @@ $(function ($) {
         var node = data.node;
         if (node.id === '#') {
             // open the root nodes automatically
-            jstree.open_node(node.children[0]);
+            node.children.forEach(function(childNode) {
+                jstree.open_node(childNode);
+            });
         }
     });
 
     $('#tree').on('after_open.jstree', function (e, data) {
         var node = data.node;
-        jstree.set_icon(node,'fa fa-folder-open');  // show the 'open' folder icon
+        if (node.id !== '#bookmarkFolder') {
+            jstree.set_icon(node, 'fa fa-folder-open');  // show the 'open' folder icon
+        }
         /**************************************************************************************************************
          * on page load we open the tree node-by-node to a preselected path
          * so we can 'stabilize' the view on "Browser refresh"
@@ -379,7 +396,9 @@ $(function ($) {
     });
     $('#tree').on('after_close.jstree', function (e, data) {
         var node = data.node;
-        jstree.set_icon(node,'fa fa-folder'); // show the 'closed' folder icon
+        if (node.id !== '#bookmarkFolder') {
+            jstree.set_icon(node,'fa fa-folder'); // show the 'closed' folder icon
+        }
     });
     $('#tree').on('select_node.jstree', function (e, data) {
         var node = data.node;
@@ -395,12 +414,13 @@ $(function ($) {
 
         $('#editor-iframe').attr('src', '');
         hash('selected', node.data.url);
-        if (!node.data.url.endsWith('/')) {
+        if (node.data.url && !node.data.url.endsWith('/')) {
             if (!node.data.url.endsWith('[errorIndicator]')) {
                 openInEditor(node.data.url); // open in editor
             }
         } else if (data.node.state.loaded) {
             // hm... better to close the node - we can reload by open it again (as 'close' removes the childs)
+            node.data.childrenNames = null;
             jstree.refresh_node(node);
         } else {
             jstree.open_node(node); // click on node-text to open subtree

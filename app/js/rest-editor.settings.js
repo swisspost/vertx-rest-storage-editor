@@ -18,8 +18,8 @@ var settings = {
 
 // routes to not allow additions or deletions (blacklist)
 var security = [
-    {"route": "/path/to/my/source/1/", "add": true, "del": false},
-    {"route": "/path/to/my/source/2/", "add": false, "del": false}
+    {route: '/path/to/my/source/1/', add: true, del: false},
+    {route: '/path/to/my/source/2/', add: false, del: false}
 ];
 
 // icons for the documents in the tree by FontAwesome
