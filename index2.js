@@ -56,6 +56,14 @@ function findNodesByUrl(searchUrl) {
     return nodes;
 }
 
+function gotoResource() {
+    'use strict';
+    autoExpandToAndSelectPath = $('#nameOfResourceToSearch').val();
+    var jstree = $('#tree').jstree();
+    jstree.refresh();
+    $('#dialogSearchResource').dialog('close');
+}
+
 function createResource() {
     'use strict';
     var relPath = $('#nameOfResourceToCreate').val();
@@ -127,6 +135,14 @@ $(function ($) {
         $('#treeResizable').width(width);
     }
 
+    $('#dialogSearchResource').dialog({
+        autoOpen: false,
+        modal: true,
+        width: '50vw',
+        close: function() {
+            $('#nameOfResourceToSearch').autocomplete('destroy');
+        }
+    });
     $('#dialogCreateResource').dialog({
         autoOpen: false,
         modal: true,
@@ -165,6 +181,20 @@ $(function ($) {
     }
     if (!bookmarkUrls) {
         bookmarkUrls = [];
+    }
+
+
+    function flattenToArray(data) {
+        var childrenUrls = [];
+        if (typeof data === 'string') {
+            return childrenUrls;
+        }
+        for (var property in data) {
+            if (data.hasOwnProperty(property)) {
+                childrenUrls = childrenUrls.concat(data[property]);
+            }
+        }
+        return childrenUrls;
     }
 
     var jstree;
@@ -207,16 +237,6 @@ $(function ($) {
                     return;
                 }
 
-                function flattenToArray(data) {
-                    var childrenUrls = [];
-                    for (var property in data) {
-                        if (data.hasOwnProperty(property)) {
-                            childrenUrls = childrenUrls.concat(data[property]);
-                        }
-                    }
-                    return childrenUrls;
-                }
-
                 var nodeUrl = node.data.url;
 
                 if (node.data.childrenNames) {
@@ -251,7 +271,60 @@ $(function ($) {
             show_at_node: false,
             items: function (node) {
                 var m = {};
-                m.title = {label: node.data.url, separator_after: true, _disabled: true};
+                m.search = {
+                    label: 'Search: ' + node.data.url,
+                    icon: 'fa fa-search',
+                    separator_after: true,
+                    action: function() {
+                        $('#dialogSearchResource').dialog('option', 'position', {
+                            my: 'left center',
+                            at: 'left+150 top',
+                            of: $('#tree').jstree().get_node(node, true),
+                            collision: 'fit'
+                        }).dialog('open');
+                        $('#nameOfResourceToSearch').autocomplete({
+                            // autoFocus: true,
+                            delay: 0,
+                            source: function (request, callback) {
+                                var parentUrl = request.term;
+                                var i = parentUrl.lastIndexOf('/');
+                                if (i < parentUrl.length) {
+                                    parentUrl = parentUrl.substring(0, i + 1);
+                                }
+                                $.get(parentUrl, function success(data) {
+                                    var children = flattenToArray(data);
+                                    var suggestions = [];
+                                    for (var i = 0; i < children.length; i++) {
+                                        var suggestion = parentUrl + children[i];
+                                        if (suggestion.indexOf(request.term) === 0) {
+                                            suggestions.push(suggestion);
+                                        }
+                                        if (suggestions.length > 100) {
+                                            break;
+                                        }
+                                    }
+                                    if (suggestions.length === 1 && suggestions[0] === request.term) {
+                                        suggestions.length = 0;
+                                    }
+                                    callback(suggestions);
+                                });
+                            },
+                            select: function (event, ui) {
+                               this.value = ui.item.value;
+                                if (event.keyCode === 9) { // if TAB Key
+                                    event.preventDefault();
+                                    $('#nameOfResourceToSearch').focus();
+                                }
+                                window.setTimeout(function () {
+                                    $('#nameOfResourceToSearch').autocomplete('search');
+                                }, 10);
+                               return false;
+                            }
+                        });
+                        $('#nameOfResourceToSearch').val(node.data.url);
+                        $('#nameOfResourceToSearch').autocomplete('search');
+                    }
+                };
                 var isBookmark = node.parent === '#bookmarkFolder';
                 m.bookmark = {
                     label: isBookmark ? 'remove from Bookmarks' : 'Bookmark this node',
@@ -325,17 +398,25 @@ $(function ($) {
 
     function page(node) {
         var nodeUrl = node.data.url;
-        var PAGE_SIZE = 500;
 
+        if (autoExpandToAndSelectPath) {
+            for (var i = 0; i < node.data.childrenNames.length; i++) {
+                var tmpUrl = node.data.url + node.data.childrenNames[i];
+                if (autoExpandToAndSelectPath.indexOf(tmpUrl) === 0) {
+                    node.data.pageOffset = Math.floor(i / settings.pageSize) * settings.pageSize;
+                    break;
+                }
+            }
+        }
         var from = node.data.pageOffset;
-        var to = Math.min(node.data.childrenNames.length, from + PAGE_SIZE);
+        var to = Math.min(node.data.childrenNames.length, from + settings.pageSize);
 
         var childrenNodes = [];
         if (from !== 0 || to !== node.data.childrenNames.length) {
             childrenNodes.push({
                 text: 'prev page ' + from + '..' + (to - 1) + ' (total ' + node.data.childrenNames.length + ')',
                 data: {
-                    pageOffsetAddition: -PAGE_SIZE
+                    pageOffsetAddition: -settings.pageSize
                 },
                 icon: 'fa fa-fast-backward',
                 li_attr: {style: 'color: blue; font-style: italic;'}
@@ -343,14 +424,14 @@ $(function ($) {
             childrenNodes.push({
                 text: 'next page',
                 data: {
-                    pageOffsetAddition: +PAGE_SIZE
+                    pageOffsetAddition: +settings.pageSize
                 },
                 icon: 'fa fa-fast-forward',
                 li_attr: {style: 'color: blue; font-style: italic;'}
             });
         }
 
-        for (var i = from; i < to; i++) {
+        for (i = from; i < to; i++) {
             var name = node.data.childrenNames[i];
             var isLeaf = !name.endsWith('/');
             childrenNodes.push({
@@ -421,7 +502,10 @@ $(function ($) {
         if (node.data.pageOffsetAddition) {
             var parentNode = jstree.get_node(node.parent);
             var newOffset = parentNode.data.pageOffset + node.data.pageOffsetAddition;
-            if (newOffset >= 0 && newOffset < parentNode.data.childrenNames.length - 1) {
+            if (newOffset < 0) {
+                newOffset = 0;
+            }
+            if (newOffset < parentNode.data.childrenNames.length - 1) {
                 parentNode.data.pageOffset = newOffset;
             }
             jstree.refresh_node(parentNode);

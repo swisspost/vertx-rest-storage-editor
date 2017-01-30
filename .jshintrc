@@ -26,42 +26,9 @@
     "eqnull": false,
 
     "globals"   : {
-        // gruntfile:
-        "require"              : false,
-        "module"	           : false,
-
-        // real globals
-        "TimeShift"            : false,
-
         // libs
-        "$"                    : false,
-        "_"                    : false,
-        "angular"              : false,
-        "moment"               : false,
-        "Hammer"               : false,
+        "$"                    : true,
         "window"               : true,
-
-        // testing
-        "inject"               : false,
-        "afterEach"            : false,
-        "beforeEach"           : false,
-        "describe"             : false,
-        "expect"               : false,
-        "it"                   : false,
-        "xit"                  : false,
-        "jasmine"              : false,
-        "runs"                 : false,
-        "spyOn"                : false,
-        "spyOnEvent"           : false,
-        "waitsFor"             : false,
-        "xdescribe"            : false
-        //        "browser"              : false,
-        //        "repeater"             : false,
-        //        "element"              : false,
-        //        "confirm"              : false,
-        //        "context"              : false,
-        //        "JSHINT"               : false,
-        //        "mostRecentAjaxRequest": false,
-        //        "qq"                   : false,
+        "console"              : true
     }
 }
