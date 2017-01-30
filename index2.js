@@ -56,11 +56,10 @@ function findNodesByUrl(searchUrl) {
     return nodes;
 }
 
-
 function createResource() {
     'use strict';
     var relPath = $('#nameOfResourceToCreate').val();
-    if(!relPath) {
+    if (!relPath) {
         $('#nameOfResourceToCreate').effect('highlight', {color: '#F88'}, 200);
         return;
     }
@@ -272,9 +271,25 @@ $(function ($) {
                         jstree.refresh_node('#bookmarkFolder');
                     }
                 };
+                var addAllowed = true, delAllowed = true;
+                if (security) {
+                    security.forEach(function (rule) {
+                        var regexp = rule.route;
+                        if (!regexp.endsWith('$')) {
+                            regexp += '$';
+                        }
+                        regexp = new RegExp(regexp);
+                        if (regexp.test(node.data.url)) {
+                            addAllowed = addAllowed && rule.add;
+                            delAllowed = delAllowed && rule.del;
+                        }
+                    });
+                }
+
                 if (node.data.url.endsWith('/')) {
                     m.create = {
                         label: 'Create resource',
+                        _disabled: !addAllowed,
                         action: function() {
                             $('#dialogCreateResource').dialog('option', 'position', {
                                 my: 'left center',
@@ -289,8 +304,9 @@ $(function ($) {
                 }
                 m.delete = {
                     label: node.data.url.endsWith('/') ? 'Delete whole tree' : 'Delete resource',
+                    _disabled: !delAllowed,
                     icon: 'fa fa-trash',
-                    action: function() {
+                    action: function () {
                         $('#dialogDeleteResource').dialog('option', 'position', {
                             my: 'left center',
                             at: 'left+150 top',
@@ -300,7 +316,7 @@ $(function ($) {
                         $('#nameOfResourceToDelete').text(node.data.url);
                     }
                 };
-                return m;
+            return m;
             }
         }
     });
