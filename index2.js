@@ -163,7 +163,7 @@ $(function ($) {
     } catch (ignore) {
     }
 
-
+    var jstree;
     $('#tree').jstree({
         core: {
             /**************************************************************************************************************
@@ -189,37 +189,37 @@ $(function ($) {
                     return;
                 }
 
+                function flattenToArray(data) {
+                    var childrenUrls = [];
+                    for (var property in data) {
+                        if (data.hasOwnProperty(property)) {
+                            childrenUrls = childrenUrls.concat(data[property]);
+                        }
+                    }
+                    return childrenUrls;
+                }
+
                 var nodeUrl = node.data.url;
-                var childrenNodes = [];
-                function addEntriesToParentNode(entries) {
-                    entries.forEach(function (c) {
-                        var isLeaf = !c.endsWith('/');
-                        var childNode = {
-                            text: c,
-                            data: {
-                                url: nodeUrl + c
-                            },
-                            icon: isLeaf ? 'fa fa-file-text-o' : 'fa fa-folder',
-                            children: !isLeaf   // to force jstree to show a '+' icon and to be able to open a not-yet loaded tree
-                        };
-                        childrenNodes.push(childNode);
-                    });
+                var childrenNodes;
+
+                if (node.data.childrenNames) {
+                    childrenNodes = page(node);
+                    callback.call(this, childrenNodes);
+                    return;
                 }
 
                 $.get(nodeUrl, function success(data) {
-                    for (var property in data) {
-                        if (data.hasOwnProperty(property)) {
-                            addEntriesToParentNode(data[property]);
-                        }
-                    }
+                    node.data.childrenNames = flattenToArray(data);
+                    node.data.pageOffset = 0;
+                    childrenNodes = page(node);
                 }).fail(function (err) {
                     // show a single red error children on AJAX error
-                    childrenNodes.push({
+                    childrenNodes = [{
                         text: err.responseText || err.statusText,
                         data: {url: nodeUrl + '[errorIndicator]'},
                         li_attr: {style: 'color: red;'},
                         icon: null
-                    });
+                    }];
                 }).always(function() {
                     callback.call(this, childrenNodes);
                 });
@@ -292,7 +292,51 @@ $(function ($) {
         }
     });
 
-    var jstree = $('#tree').jstree();
+    jstree = $('#tree').jstree();
+
+    function page(node) {
+        var nodeUrl = node.data.url;
+        var PAGE_SIZE = 500;
+
+        var from = node.data.pageOffset;
+        var to = Math.min(node.data.childrenNames.length, from + PAGE_SIZE);
+
+        var childrenNodes = [];
+        if (from !== 0 || to !== node.data.childrenNames.length) {
+            childrenNodes.push({
+                text: 'prev page ' + from + '..' + (to - 1) + ' (total ' + node.data.childrenNames.length + ')',
+                data: {
+                    pageOffsetAddition: -PAGE_SIZE
+                },
+                icon: 'fa fa-fast-backward',
+                li_attr: {style: 'color: blue; font-style: italic;'}
+            });
+            childrenNodes.push({
+                text: 'next page',
+                data: {
+                    pageOffsetAddition: +PAGE_SIZE
+                },
+                icon: 'fa fa-fast-forward',
+                li_attr: {style: 'color: blue; font-style: italic;'}
+            });
+        }
+
+        for (var i = from; i < to; i++) {
+            var name = node.data.childrenNames[i];
+            var isLeaf = !name.endsWith('/');
+            childrenNodes.push({
+                text: name,
+                data: {
+                    url: nodeUrl + name
+                },
+                icon: isLeaf ? 'fa fa-file-text-o' : 'fa fa-folder',
+                children: !isLeaf   // force jstree to show a '+' icon and to be able to open a not-yet loaded tree
+            });
+        }
+        return childrenNodes;
+    }
+
+
     $('#tree').on('load_node.jstree', function (e, data) {
         var node = data.node;
         if (node.id === '#') {
@@ -312,6 +356,9 @@ $(function ($) {
             for (var i = 0; i < node.children.length; i++) {
                 var childNode = jstree.get_node(node.children[i]);
                 var childUrl = childNode.data.url;
+                if (!childUrl) {
+                    continue;
+                }
                 if (autoExpandToAndSelectPath === childUrl) {
                     // found the target
                     node = childNode;
@@ -336,6 +383,16 @@ $(function ($) {
     });
     $('#tree').on('select_node.jstree', function (e, data) {
         var node = data.node;
+        if (node.data.pageOffsetAddition) {
+            var parentNode = jstree.get_node(node.parent);
+            var newOffset = parentNode.data.pageOffset + node.data.pageOffsetAddition;
+            if (newOffset >= 0 && newOffset < parentNode.data.childrenNames.length - 1) {
+                parentNode.data.pageOffset = newOffset;
+            }
+            jstree.refresh_node(parentNode);
+            return;
+        }
+
         $('#editor-iframe').attr('src', '');
         hash('selected', node.data.url);
         if (!node.data.url.endsWith('/')) {
@@ -351,22 +408,11 @@ $(function ($) {
     });
     $('#tree').on('after_close.jstree', function (e, data) {
         // we only want to remove children to force fresh reload when opening node again
-        // but this is slow in jstree --> we remove the whole node (which is quite fast) and re-insert a reincarnation of it @same position
         var node = data.node;
-        var parentNode = jstree.get_node(jstree.get_parent(node));
-        var pos = parentNode.children.indexOf(node.id);
-        jstree.delete_node(node);
-        var reincarnationNode = {
-            text: node.text,
-            data: node.data,
-            state: {
-                selected: node.state.selected
-            },
-            icon: node.icon,
-            children: true
-        };
-        jstree.create_node(parentNode, reincarnationNode, pos);
-    });
+        node.data.childrenNames = null;
+        node.state.loaded = false;
+        jstree.delete_node(node.children);
+   });
 });
 
 // toggle raw <-> editor mode
