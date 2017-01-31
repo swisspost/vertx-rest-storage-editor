@@ -414,7 +414,7 @@ function init() {
                 initEmpty();
             });
         }
-        editor.focus();
+        // editor.focus();
         $("#headers").text("");
         $.each($.cookie("headers") || [], function(pos, header) {
             addHeader(header, true);
