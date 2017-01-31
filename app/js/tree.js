@@ -195,6 +195,9 @@ $(function ($) {
     var jstree;
 
     var treeBase = getParameterByName('treeBase');
+    if (!treeBase) {
+        treeBase = '/';
+    }
     if (!treeBase.endsWith('/')) {
         treeBase += '/';
     }
@@ -456,8 +459,8 @@ $(function ($) {
             });
         }
 
-        for (i = from; i < to; i++) {
-            var name = node.data.childrenNames[i];
+        for (var j = from; j < to; j++) {
+            var name = node.data.childrenNames[j];
             var isLeaf = !name.endsWith('/');
             childrenNodes.push({
                 text: name,

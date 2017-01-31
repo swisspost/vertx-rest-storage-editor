@@ -11,14 +11,10 @@ module.exports = function () {
         // list of files / patterns to load in the browser
         files: [
             'vendor/jquery.js',
-            'vendor/jquery.cookie.js',
+            'vendor/jquery-ui.min.js',
             'vendor/jstree/jstree.min.js',
-            'app/js/tree/tree.ajax.js',
-            'app/js/tree/tree.search.js',
-            'app/js/tree/tree.node.js',
-            'app/js/tree/tree.secure.js',
             'app/js/rest-editor.settings.js',
-            'app/js/tree/tree.core.js',
+            'app/js/tree.js',
             'app/js/editor/editor.js',
             'node_modules/jquery-mockjax/dist/jquery.mockjax.js',
             'vendor/bootstrap.js',

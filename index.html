@@ -5,76 +5,76 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="shortcut icon" href="favicon.ico">
+        <link rel="stylesheet" href="vendor/jquery-ui.min.css" />
         <link rel="stylesheet" href="app/css/proton/style.min.css" />
         <link rel="stylesheet" href="vendor/bootstrap/css/bootstrap.min.css">
-        <link rel="stylesheet" href="vendor/bootstrap3-dialog/css/bootstrap-dialog.min.css">
         <link rel="stylesheet" href="vendor/font-awesome/css/font-awesome.min.css">
-        <link rel="stylesheet" href="app/css/tree.css">
 
         <script src="vendor/jquery.js"></script>
-        <script src="vendor/bootstrap.js"></script>
-        <script src="vendor/bootstrap3-dialog/js/bootstrap-dialog.min.js"></script>
+        <script src="vendor/jquery-ui.min.js"></script>
         <script src="vendor/jstree/jstree.min.js"></script>
+
+        <style>
+            .ui-autocomplete {
+                max-height: 50vh;
+                overflow-y: auto;
+                /* prevent horizontal scrollbar */
+                overflow-x: hidden;
+            }
+            li.ui-menu-item {
+                font-family: monospace;
+                color:#888;
+            }
+        </style>
     </head>
     <body>
-    <section>
-        <article id="toolbox" class="container">
-            <div class="well">
-                <p>Search with name (in loaded and visible tree):</p>
-                <form onsubmit="tree.search($('#filterInput').val(), false, true);hideToolbox();" class="input-group">
-                    <input id="filterInput" class="form-control" placeholder="type your search" onClick="this.select();">
-                    <span class="input-group-btn">
-                        <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i></button>
-                    </span>
-                </form>
+        <div style="width: 100vw; height: 100vh; display: flex">
+            <div id="treeResizable" style="width: 350px;; display: flex; flex-direction: column">
+                <div style="border-bottom: 1px solid #888; padding: 5px;">
+                    <button class="ui-button ui-widget ui-corner-all" title="Home" onclick="goHome()">
+                        <i class="fa fa-home"></i>
+                    </button>
+                    <label for="edit-mode-toggler" style="margin: 0" title="Toggle Edit / Raw "><i class="fa fa-pencil"></i></label>
+                    <input type="checkbox" id="edit-mode-toggler" onchange="toggleEditModeClicked()"/>
+                </div>
+                <div id="tree" style="overflow: auto; background-color: #EEE; flex-grow:1"></div>
             </div>
-            <div class="well">
-                <p>Search a file with name over redis request:</p>
-                <form onsubmit="searchRequest($('#searchInputRequest').val());hideToolbox();" class="input-group">
-                    <input id="searchInputRequest" class="form-control" placeholder="type REST URL" onfocus="$('#searchInputRequest').val(getUrlPath())">
-                    <span class="input-group-btn">
-                        <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i></button>
-                    </span>
-                </form>
+            <div style="background-color: #888; cursor: ew-resize; width: 5px; height: 100%;" id="resize-handle" class="ui-resizable-exxx"></div>
+            <div style="flex-grow: 1">
+                <div style="position: relative; width: 100%; height: 100%">
+                    <iframe id="editor-iframe" style="position: absolute; top:0; left:0;  width: 100%; height: 100%; border: none"></iframe>
+                    <div id="editor-hide-iframe-overlay" style="position:absolute; top:0; left:0; width: 100%; height: 100%; background-color:rgba(255,255,255,0.5); display: none;"></div>
+                </div>
             </div>
-        </article>
-        <div id="backdrop"></div>
-        <article id="sidebar" class="jumbotron">
-            <div>
-                <ol id="breadcrumb" class="breadcrumb"></ol>
-            </div>
-            <div id="tree">
-                <div id="treeError" class="alert alert-danger"><b>Not valid URL:</b><br>Please check that your URL has an '/' at the end</div>
-            </div>
-        </article>
-        <article id="editor">
-            <div style="padding:0; overflow:hidden">
-                <iframe id="frame"></iframe>
-            </div>
-        </article>
-        <article id="buttonBar" class="jumbotron">
-            <a id="goHome" class="btn btn-default"><i class="fa fa-home"></i></a><br><br>
-            <button id="toolboxVisibleBtn" onclick="hideToolbox()" class="btn btn-default"><i class="fa fa-bars"></i></button><br><br>
-            <button id="treeVisibleBtn" onclick="hideTree()" class="btn btn-default" data-toggle="tooltip" data-placement="right" title="Hide tree"><i class="fa fa-arrows-h"></i></button><br><br>
-            <button onclick="tree.clear_search()" class="btn btn-default" data-toggle="tooltip" data-placement="right" title="Reset search"><i class="fa fa-reply-all"></i></button><br><br>
-            <button onclick="reloadTree()" class="btn btn-default" data-toggle="tooltip" data-placement="right" title="Reload Tree"><i class="fa fa-refresh"></i></button><br><br>
-            <button onclick="chgRawEditMode()" id="edit-switch" class="btn btn-default active" data-toggle="tooltip" data-placement="right" title="Raw Edit Mode"><i class="fa fa-pencil"></i></button><br><br>
-            <button onclick="addNodeDialog()" id="addRootNodeBtn" class="btn btn-default" data-toggle="tooltip" data-placement="right" title="Add root node (reloads Tree!)"><i class="fa fa-plus"></i></button><br><br>
-            <button onclick="helpDialog()" class="btn btn-default" data-toggle="tooltip" data-placement="right" title="Help"><i class="fa fa-question">&nbsp;</i></button><br><br>
-            <button onclick="scrollUp()" class="btn btn-default" data-toggle="tooltip" data-placement="right" title="Scroll up"><i class="fa fa-arrow-up"></i></button><br><br>
-            <button onclick="scrollDown()" class="btn btn-default" data-toggle="tooltip" data-placement="right" title="Scroll down"><i class="fa fa-arrow-down"></i></button>
-        </article>
-    </section>
+        </div>
+
+        <div id="dialogSearchResource" title="Search resource / collection">
+            <form action="javascript:gotoResource();">
+                <input id="nameOfResourceToSearch" type="text" style="width:100%; font-family: monospace">
+                <br>
+                <input type="submit" value="Goto">
+            </form>
+        </div>
+
+        <div id="dialogCreateResource" title="Create resource">
+            <form action="javascript:createResource();">
+                <label id="nameOfResourceToCreateBaseUrl" style="font-family: monospace"></label>
+                <br>
+                <input id="nameOfResourceToCreate" type="text" style="width:100%; font-family: monospace">
+                <br>
+                <input type="submit" value="Create">
+            </form>
+        </div>
+
+        <div id="dialogDeleteResource" title="Delete resource">
+            <form action="javascript:deleteResource();">
+                <label id="nameOfResourceToDelete" style="font-family: monospace"></label>
+                <br>
+                <input type="submit" value="Delete">
+            </form>
+        </div>
+
         <script src="app/js/rest-editor.settings.js"></script>
-        <script src="app/js/tree/tree.ajax.js"></script>
-        <script src="app/js/tree/tree.node.js"></script>
-        <script src="app/js/tree/tree.search.js"></script>
-        <script src="app/js/tree/tree.secure.js"></script>
-        <script src="app/js/tree/tree.core.js"></script>
-        <script>
-            $(function () {
-                $('[data-toggle="tooltip"]').tooltip();
-            });
-        </script>
+        <script src="app/js/tree.js"></script>
     </body>
 </html>

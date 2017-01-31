@@ -1,31 +1,19 @@
-var nodes = [];   // deprecated
-var tree = {};    // deprecated
-var baseUrl = ''; // deprecated
-var homeUrl = ''; // deprecated - now in "settings"
-
 // basic app settings
 var settings = {
     homeUrl: '/eagle',
-    apiVersion: 'v1',            // seems to be unused
-    limitDefault: 500,           // deprecated - now see pageSize
-    limitStretch: 20000,         // deprecated - now see pageSize
-    limitParam: '?limit=500',    // deprecated - now see pageSize
     pageSize: 500,
-    rawEditMode: 1,              // deprecated  now see startInEditMode
-    startInEditMode: true,       // if 'false' we start in Raw-Mode
-    ContextDisabledDelete: true,
-    ContextDisabledAdd: true,
-    devBaseUrl: '',              // deprecated
-    baseUrl: ''                  // deprecated
+    startInEditMode: true       // if 'false' we start in Raw-Mode
 };
 
 // routes to disallow additions or deletions (blacklist)
 var security = [
-    // {route: '/path/to/my/source/1/', add: true, del: false},
-    // {route: '/path/to/my/source/2/', add: false, del: false}
+    // {route: '/', add: true, del: false},                  // matches all collections
+    // {route: '/path/to/source/1', add: true, del: false},  // matches URLs which 'ends' with this pattern - so this is a single resource
+    // {route: '/path/to/source/', add: false, del: false},  // matches the collection - but _not_ it's children
+    // {route: '/path/to/all/.*', add: false, del: false}    // if you want to 'lock' a whole tree (incl. subntree), append ".*"
 ];
 
-// icons for the documents in the tree by FontAwesome
+// icons for the documents in the tree by FontAwesome - not used at the moment
 var iconTypes = {
     'default': {'icon': 'fa fa-file-text-o'},
     'folder-open': {'icon': 'fa fa-folder-open'},

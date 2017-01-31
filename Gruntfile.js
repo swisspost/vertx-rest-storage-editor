@@ -57,5 +57,5 @@ module.exports = function(grunt) {
     grunt.registerTask('build', ['clean', 'copy']);
     grunt.registerTask('test', ['karma']);
     grunt.registerTask('package', ['compress']);
-    grunt.registerTask('default', ['build', 'test', 'package']);
+    grunt.registerTask('default', ['build', 'package']);
 };
