@@ -38,6 +38,11 @@ function hash(name, value) {
 
 var autoExpandToAndSelectPath = hash('selected');
 
+function goHome() {
+    'use strict';
+    window.location.href = settings.homeUrl;
+}
+
 function findNodesByUrl(searchUrl) {
     'use strict';
     var nodes = [];
@@ -115,6 +120,13 @@ function deleteResource() {
 
 $(function ($) {
     'use strict';
+
+    if(settings.startInEditMode) {
+        $('#edit-mode-toggler').prop('checked', true);
+    }
+    $('#edit-mode-toggler').checkboxradio({
+        icon: false
+    });
 
     /**************************************************************************************************************
      * Make the tree horizontally resizable (width)
@@ -533,7 +545,7 @@ $(function ($) {
             return;
         }
 
-        $('#editor-iframe').attr('src', '');
+        openInEditor(null);
         hash('selected', node.data.url);
         if (node.data.url && !node.data.url.endsWith('/')) {
             if (!node.data.url.endsWith('[errorIndicator]')) {
@@ -560,25 +572,33 @@ $(function ($) {
    });
 });
 
+
+var currentUrlInEditor = null;
 // toggle raw <-> editor mode
-function toggleRawMode() {
+function toggleEditModeClicked() {
     'use strict';
-    $('#raw-mode-toggler').toggleClass('active');
-    openInEditor();
+    openInEditor(currentUrlInEditor);
 }
 
-// load node by id into the editor
+// start editor, either in Edit-Mode or in Raw-Mode
 function openInEditor(url) {
     'use strict';
 
-    var rawMode = $('#raw-mode-toggler').hasClass('active');
-    var editMode = !rawMode;
+    if (currentUrlInEditor) {
+        console.log('closing');
+        $('#editor-iframe').attr('src', '');
+    }
+    currentUrlInEditor = url;
+
+    var editMode = $('#edit-mode-toggler').is(':checked');
     if (url && editMode) {
         var editor = getParameterByName('editor') || 'editor.html';
         url = editor + '#' + url;
     }
-    // $('#editor-iframe').attr('src', '');
-    window.setTimeout(function () {
-        $('#editor-iframe').attr('src', url);
-    }, 10);
+    if (url) {
+        window.setTimeout(function () {
+            console.log('opening '+url);
+            $('#editor-iframe').attr('src', url);
+        }, 10);
+    }
 }

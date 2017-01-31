@@ -29,8 +29,15 @@
     </head>
     <body>
         <div style="width: 100vw; height: 100vh; display: flex">
-            <div id="treeResizable" style="background-color: #EEE; width: 350px;">
-                <div id="tree" style="height:100%; overflow: auto;"></div>
+            <div id="treeResizable" style="width: 350px;; display: flex; flex-direction: column">
+                <div style="border-bottom: 1px solid #888; padding: 5px;">
+                    <button class="ui-button ui-widget ui-corner-all" title="Home" onclick="goHome()">
+                        <i class="fa fa-home"></i>
+                    </button>
+                    <label for="edit-mode-toggler" style="margin: 0" title="Toggle Edit / Raw "><i class="fa fa-pencil"></i></label>
+                    <input type="checkbox" id="edit-mode-toggler" onchange="toggleEditModeClicked()"/>
+                </div>
+                <div id="tree" style="overflow: auto; background-color: #EEE; flex-grow:1"></div>
             </div>
             <div style="background-color: #888; cursor: ew-resize; width: 5px; height: 100%;" id="resize-handle" class="ui-resizable-exxx"></div>
             <div style="flex-grow: 1">

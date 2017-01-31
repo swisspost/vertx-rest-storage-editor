@@ -1,26 +1,28 @@
 var nodes = [];   // deprecated
 var tree = {};    // deprecated
 var baseUrl = ''; // deprecated
-var homeUrl = ''; // deprecated
+var homeUrl = ''; // deprecated - now in "settings"
 
 // basic app settings
 var settings = {
-    apiVersion: 'v1',
-    limitDefault: 500,    // deprecated
-    limitStretch: 20000,  // deprecated
+    homeUrl: '/eagle',
+    apiVersion: 'v1',            // seems to be unused
+    limitDefault: 500,           // deprecated - now see pageSize
+    limitStretch: 20000,         // deprecated - now see pageSize
+    limitParam: '?limit=500',    // deprecated - now see pageSize
     pageSize: 500,
-    limitParam: '?limit=500', // deprecated
-    rawEditMode: 1,
+    rawEditMode: 1,              // deprecated  now see startInEditMode
+    startInEditMode: true,       // if 'false' we start in Raw-Mode
     ContextDisabledDelete: true,
     ContextDisabledAdd: true,
-    devBaseUrl: '',    // deprecated
-    baseUrl: ''        // deprecated
+    devBaseUrl: '',              // deprecated
+    baseUrl: ''                  // deprecated
 };
 
-// routes to not allow additions or deletions (blacklist)
+// routes to disallow additions or deletions (blacklist)
 var security = [
-    {route: '/path/to/my/source/1/', add: true, del: false},
-    {route: '/path/to/my/source/2/', add: false, del: false}
+    // {route: '/path/to/my/source/1/', add: true, del: false},
+    // {route: '/path/to/my/source/2/', add: false, del: false}
 ];
 
 // icons for the documents in the tree by FontAwesome
