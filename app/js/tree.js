@@ -460,12 +460,15 @@ $(function ($) {
         }
 
         for (var j = from; j < to; j++) {
-            var name = node.data.childrenNames[j];
-            var isLeaf = !name.endsWith('/');
+            var entry = node.data.childrenNames[j];
+            if($.isPlainObject(entry) && entry["name"] != null){
+                entry = entry["name"];
+            }
+            var isLeaf = !entry.endsWith('/');
             childrenNodes.push({
-                text: name,
+                text: entry,
                 data: {
-                    url: nodeUrl + name
+                    url: nodeUrl + entry
                 },
                 icon: isLeaf ? 'fa fa-file-text-o' : 'fa fa-folder',
                 children: !isLeaf   // force jstree to show a '+' icon and to be able to open a not-yet loaded tree
