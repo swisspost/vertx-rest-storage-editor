@@ -12,7 +12,6 @@ function paramSelected(value) {
     }
 
     if (value === undefined || value === '') {
-        console.log('info', treeBase + selected);
         return treeBase + selected;
     }
 
@@ -25,9 +24,8 @@ function paramSelected(value) {
 
     // update url
     window.history.replaceState(undefined, undefined, newUrl);
-    selected = getParameterByName('selected');
 
-    return treeBase + selected;
+    return treeBase + getParameterByName('selected');
 }
 
 var autoExpandToAndSelectPath = paramSelected();
@@ -107,6 +105,7 @@ function deleteResource() {
     });
 }
 
+// return one parameter by name
 function getParameterByName(name) {
     var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
     if (results==null){
@@ -117,6 +116,7 @@ function getParameterByName(name) {
     }
 }
 
+// update one parameter in an url
 function updateURLParameter(url, param, paramVal){
     var newAdditionalURL = "";
     var tempArray = url.split("?");
