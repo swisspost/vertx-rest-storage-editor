@@ -1,39 +1,33 @@
 'use strict';
-/*
- * see http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
- */
-function getParameterByName(name) {
-    var url = window.location.href;
-    name = name.replace(/[\[\]]/g, '\\$&');
-    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
-        results = regex.exec(url);
-    if (!results) {
-        return null;
-    }
-    if (!results[2]) {
-        return '';
-    }
-    return decodeURIComponent(results[2].replace(/\+/g, ' '));
-}
 
 function paramSelected(value) {
-    var selected = urlParam('selected');
+    var selected = getParameterByName('selected');
+    var treeBase = getParameterByName('treeBase');
+    // fix probably wrong uri with tree base instead without
+    if (selected) {
+        selected = selected.replace(treeBase, '')
+        var fixedUrl = updateURLParameter(window.location.href, 'selected', selected);
+        // update url
+        window.history.replaceState(undefined, undefined, fixedUrl);
+    }
 
-    if (value === undefined) {
-        return urlParam('treeBase') + selected;
+    if (value === undefined || value === '') {
+        console.log('info', treeBase + selected);
+        return treeBase + selected;
     }
 
     var newUrl;
     if (!selected || selected === null) {
-        newUrl = window.location.href + '&selected=' + value.replace(urlParam('treeBase'), '');
+        newUrl = window.location.href + '&selected=' + value.replace(treeBase, '');
     } else {
-        newUrl = updateURLParameter(window.location.href, 'selected', value.replace(urlParam('treeBase'), ''));
+        newUrl = updateURLParameter(window.location.href, 'selected', value.replace(treeBase, ''));
     }
 
+    // update url
     window.history.replaceState(undefined, undefined, newUrl);
-    selected = urlParam('selected');
+    selected = getParameterByName('selected');
 
-    return urlParam('treeBase') + selected;
+    return treeBase + selected;
 }
 
 var autoExpandToAndSelectPath = paramSelected();
@@ -113,13 +107,13 @@ function deleteResource() {
     });
 }
 
-function urlParam(name) {
+function getParameterByName(name) {
     var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
     if (results==null){
        return null;
     }
     else{
-       return decodeURI(results[1]) || 0;
+       return decodeURI(results[1]) || '/';
     }
 }
 
@@ -226,7 +220,10 @@ $(function ($) {
     }
     var ROOT_NODES = [{
         text: treeBase,
-        data: {url: treeBase},
+        data: {
+            url: treeBase,
+            isMainTree: true
+        },
         icon: 'fa fa-folder',
         children: true
     }, {
@@ -491,7 +488,8 @@ $(function ($) {
             childrenNodes.push({
                 text: entry,
                 data: {
-                    url: nodeUrl + entry
+                    url: nodeUrl + entry,
+                    isMainTree: true
                 },
                 icon: isLeaf ? 'fa fa-file-text-o' : 'fa fa-folder',
                 children: !isLeaf   // force jstree to show a '+' icon and to be able to open a not-yet loaded tree
@@ -524,7 +522,7 @@ $(function ($) {
          * on page load we open the tree node-by-node to a preselected path
          * so we can 'stabilize' the view on "Browser refresh"
          *************************************************************************************************************/
-        if (autoExpandToAndSelectPath) {
+        if (autoExpandToAndSelectPath && node.data.isMainTree) {
             for (var i = 0; i < node.children.length; i++) {
                 var childNode = jstree.get_node(node.children[i]);
                 var childUrl = childNode.data.url;
