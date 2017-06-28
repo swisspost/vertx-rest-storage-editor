@@ -84,7 +84,10 @@ function createResource() {
     $.ajax({
         url: url,
         type: 'PUT',
-        data: '{}'
+        data: '{}',
+        beforeSend: function(request) {
+            request.setRequestHeader("Access-Control-Allow-Methods", "PUT");
+        }
     }).then(function () {
         var affectedParentNodes = findNodesByUrl(basePath);
         autoExpandToAndSelectPath = url;
@@ -96,15 +99,23 @@ function createResource() {
         });
         // jstree.refresh_node(basePath);
         $('#dialogCreateResource').parent().effect('highlight', {color: '#8F8'}, 200);
+        $('#dialogCreateResource').dialog('close');
     });
 }
 
 function deleteResource() {
     'use strict';
-    var url = $('#nameOfResourceToDelete').text();
+    var recursiveParam = ''
+    if ($('#recursiveDelete').val() === 'on') {
+        recursiveParam = '?recursive=true'
+    }
+    var url = $('#nameOfResourceToDelete').text() + recursiveParam;
     $.ajax({
         url: url,
-        type: 'DELETE'
+        type: 'DELETE',
+        beforeSend: function(request) {
+            request.setRequestHeader("Access-Control-Allow-Methods", "DELETE");
+        }
     }).then(function () {
         var jstree = $('#tree').jstree();
         var affectedNodes = findNodesByUrl(url);
@@ -151,7 +162,7 @@ $(function ($) {
     }
 
     /**************************************************************************************************************
-     * Setup three modal dialogs
+     * Setup modal dialogs
      *************************************************************************************************************/
     $('#dialogSearchResource').dialog({
         autoOpen: false,
@@ -301,9 +312,9 @@ $(function ($) {
                     separator_after: true,
                     action: function() {
                         $('#dialogSearchResource').dialog('option', 'position', {
-                            my: 'left center',
-                            at: 'left+150 top',
-                            of: $('#tree').jstree().get_node(node, true),
+                            my: 'center top+50',
+                            at: 'center top+50',
+                            of: window,
                             collision: 'fit'
                         }).dialog('open');
                         $('#nameOfResourceToSearch').autocomplete({
@@ -389,9 +400,9 @@ $(function ($) {
                         _disabled: !addAllowed,
                         action: function() {
                             $('#dialogCreateResource').dialog('option', 'position', {
-                                my: 'left center',
-                                at: 'left+150 top',
-                                of: $('#tree').jstree().get_node(node, true),
+                                my: 'center top+50',
+                                at: 'center top+50',
+                                of: window,
                                 collision: 'fit'
                             }).dialog('open');
                             $('#nameOfResourceToCreateBaseUrl').text(node.data.url);
@@ -405,9 +416,9 @@ $(function ($) {
                     icon: 'fa fa-trash',
                     action: function () {
                         $('#dialogDeleteResource').dialog('option', 'position', {
-                            my: 'left center',
-                            at: 'left+150 top',
-                            of: $('#tree').jstree().get_node(node, true),
+                            my: 'center top+50',
+                            at: 'center top+50',
+                            of: window,
                             collision: 'fit'
                         }).dialog('open');
                         $('#nameOfResourceToDelete').text(node.data.url);
@@ -591,8 +602,9 @@ function openInEditor(url) {
     'use strict';
 
     if (currentUrlInEditor) {
-        console.log('closing');
+        console.info('closing');
         $('#editor-iframe').attr('src', '');
+        $('#empty-editor-placeholder').fadeTo(400,1);
     }
     currentUrlInEditor = url;
 
@@ -603,8 +615,9 @@ function openInEditor(url) {
     }
     if (url) {
         window.setTimeout(function () {
-            console.log('opening '+url);
+            console.info('opening '+url);
             $('#editor-iframe').attr('src', url);
+            $('#empty-editor-placeholder').fadeTo(1,0);
         }, 10);
     }
 }
