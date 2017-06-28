@@ -1,0 +1,92 @@
+.ui-autocomplete {
+    max-height: 50vh;
+    overflow-y: auto;
+    /* prevent horizontal scrollbar */
+    overflow-x: hidden;
+}
+
+li.ui-menu-item {
+    font-family: monospace;
+    color:#888;
+}
+
+.tree-wrapper {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+}
+
+.button-bar {
+    border-bottom: 1px solid #888;
+    padding: 5px;
+}
+
+.search-resource {
+    width:100%;
+    font-family: monospace;
+}
+
+.editor-placeholder {
+    flex-grow: 1;
+}
+
+.editor-placeholder-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+#treeResizable {
+    width: 350px;
+    display: flex;
+    flex-direction: column;
+}
+
+#resize-handle {
+    background-color: #888;
+    cursor: ew-resize;
+    width: 5px;
+    height: 100%;
+}
+
+#tree {
+    overflow: auto;
+    background-color: #EEE;
+    flex-grow: 1;
+}
+
+#editor-iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+#empty-editor-placeholder {
+    position: absolute;
+    top: 40%;
+    width: 100%;
+    text-align: center;
+    z-index: -1;
+}
+
+#editor-hide-iframe-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color:rgba(255,255,255,0.5);
+    display: none;
+}
+
+/* jquery ui overritten css   */
+/******************************/
+
+.ui-widget-overlay {
+   background: #AAA url(images/ui-bg_flat_0_aaaaaa_40x100.png) 50% 50% repeat-x;
+   opacity: .30;
+   filter: Alpha(Opacity=30);
+}
