@@ -35,15 +35,15 @@
   "devDependencies": {
     "grunt": "^1.0.1",
     "grunt-contrib-clean": "^1.1.0",
-    "grunt-contrib-compress": "^1.4.3",
+    "grunt-contrib-compress": "^1.4.2",
     "grunt-contrib-copy": "^1.0.0",
     "grunt-karma": "^2.0.0",
+    "http-server": "^0.10.0",
     "jasmine": "^2.6.0",
     "karma": "^1.7.0",
     "karma-coverage": "^1.1.1",
     "karma-jasmine": "^1.1.0",
     "karma-phantomjs-launcher": "^1.0.4",
-    "phantomjs-prebuilt": "^2.1.14",
-    "http-server": "^0.10.0"
+    "phantomjs-prebuilt": "^2.1.14"
   }
 }
