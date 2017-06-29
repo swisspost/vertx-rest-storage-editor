@@ -1,6 +1,6 @@
 {
   "name": "vertx-rest-storage-editor",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "The vertx-rest-storage-editor is the front end component for vertx-rest-storage-editor.",
   "author": "Matthias Baldi",
   "license": "Apache-2.0",
@@ -12,7 +12,7 @@
     }
   ],
   "scripts": {
-    "start": "start http://localhost:54321/index.html?treeBase=http://localhost:7012/eagle/server && http-server -p 54321 -c-1",
+    "start": "start http://localhost:54321/index.html?treeBase=http://teddie01.pnet.ch:7020/eagle/server && http-server -p 54321 -c-1",
     "test": "karma start test/karma.conf.js"
   },
   "repository": {
@@ -20,29 +20,29 @@
     "url": "https://github.com/swisspush/vertx-rest-storage-editor.git"
   },
   "dependencies": {
-    "ace-builds": "1.2.5",
-    "bootstrap": "3.3.7",
-    "bootstrap3-dialog": "1.35.3",
-    "font-awesome": "4.7.0",
-    "jquery": "2.2.4",
-    "jquery-ui-dist": "1.12.1",
-    "jquery-mockjax": "2.2.1",
-    "jquery.cookie": "1.4.1",
-    "jstree": "3.3.3",
-    "tv4": "1.2.7"
+    "ace-builds": "^1.2.6",
+    "bootstrap": "^3.3.7",
+    "bootstrap3-dialog": "^1.35.4",
+    "font-awesome": "^4.7.0",
+    "jquery": "^3.2.1",
+    "jquery-ui-dist": "^1.12.1",
+    "jquery-mockjax": "^2.2.2",
+    "jquery.cookie": "^1.4.1",
+    "jstree": "^3.3.4",
+    "tv4": "^1.3.0"
   },
   "devDependencies": {
-    "grunt": "1.0.1",
-    "grunt-contrib-clean": "1.0.0",
-    "grunt-contrib-compress": "1.3.0",
-    "grunt-contrib-copy": "1.0.0",
-    "grunt-karma": "2.0.0",
-    "jasmine": "2.5.3",
-    "karma": "1.3.0",
-    "karma-coverage": "1.1.1",
-    "karma-jasmine": "1.1.0",
-    "karma-phantomjs-launcher": "1.0.2",
-    "phantomjs-prebuilt": "2.1.14",
-    "http-server": "0.9.0"
+    "grunt": "^1.0.1",
+    "grunt-contrib-clean": "^1.1.0",
+    "grunt-contrib-compress": "^1.4.3",
+    "grunt-contrib-copy": "^1.0.0",
+    "grunt-karma": "^2.0.0",
+    "jasmine": "^2.6.0",
+    "karma": "^1.7.0",
+    "karma-coverage": "^1.1.1",
+    "karma-jasmine": "^1.1.0",
+    "karma-phantomjs-launcher": "^1.0.4",
+    "phantomjs-prebuilt": "^2.1.14",
+    "http-server": "^0.10.0"
   }
 }
