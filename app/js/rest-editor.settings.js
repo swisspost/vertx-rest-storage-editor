@@ -3,7 +3,7 @@ var settings = {
     homeUrl: '/eagle',
     pageSize: 500,
     startInEditMode: true,       // if 'false' we start in Raw-Mode
-    deleteRecursiveVisible: false
+    deleteRecursiveVisible: true
 };
 
 // routes to disallow additions or deletions (blacklist)

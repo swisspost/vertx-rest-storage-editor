@@ -75,19 +75,23 @@ function createResource() {
         data: '{}',
         beforeSend: function(request) {
             request.setRequestHeader("Access-Control-Allow-Methods", "PUT");
+        },
+        success: () => {
+            var affectedParentNodes = findNodesByUrl(basePath);
+            autoExpandToAndSelectPath = url;
+            var jstree = $('#tree').jstree();
+            jstree.deselect_all();
+            affectedParentNodes.forEach(function(node) {
+                node.data.childrenNames = null;
+                jstree.refresh_node(node);
+            });
+            createSuccessMessage(`<b>Created node</b><br><span>${relPath}</span>`);
+            // jstree.refresh_node(basePath);
+            $('#dialogCreateResource').dialog('close');
+        },
+        error: (err) => {
+            createErrorMessage(`<b>${err.statusText}</b><br><span>${err.responseText}</span>`);
         }
-    }).then(function () {
-        var affectedParentNodes = findNodesByUrl(basePath);
-        autoExpandToAndSelectPath = url;
-        var jstree = $('#tree').jstree();
-        jstree.deselect_all();
-        affectedParentNodes.forEach(function(node) {
-            node.data.childrenNames = null;
-            jstree.refresh_node(node);
-        });
-        // jstree.refresh_node(basePath);
-        $('#dialogCreateResource').parent().effect('highlight', {color: '#8F8'}, 200);
-        $('#dialogCreateResource').dialog('close');
     });
 }
 
@@ -103,17 +107,24 @@ function deleteResource() {
         type: 'DELETE',
         beforeSend: function(request) {
             request.setRequestHeader("Access-Control-Allow-Methods", "DELETE");
+        },
+        success: () => {
+            var jstree = $('#tree').jstree();
+            // replace recursive true param if exists
+            url = url.replace('?recursive=true', '');
+            var affectedNodes = findNodesByUrl(url);
+            affectedNodes.forEach(function (node) {
+                createSuccessMessage(`<b>Deleted node</b><br><span>${node.text}</span>`);
+                jstree.delete_node(node);
+                var parentNode = jstree.get_node(node.parent);
+                parentNode.data.childrenNames = null;
+                jstree.refresh_node(parentNode);
+            });
+            $('#dialogDeleteResource').dialog('close');
+        },
+        error: (err) => {
+            createErrorMessage(`<b>${err.statusText}</b><br><span>${err.responseText}</span>`);
         }
-    }).then(function () {
-        var jstree = $('#tree').jstree();
-        var affectedNodes = findNodesByUrl(url);
-        affectedNodes.forEach(function (node) {
-            jstree.delete_node(node);
-            var parentNode = jstree.get_node(node.parent);
-            parentNode.data.childrenNames = null;
-            jstree.refresh_node(parentNode);
-        });
-        $('#dialogDeleteResource').dialog('close');
     });
 }
 
@@ -147,6 +158,29 @@ function updateURLParameter(url, param, paramVal){
 
     var rows_txt = temp + "" + param + "=" + paramVal;
     return baseURL + "?" + newAdditionalURL + rows_txt;
+}
+
+// create toast message
+function createMessage(text, color) {
+    $.toast({ 
+        text : text, 
+        showHideTransition : 'slide',
+        bgColor : color,
+        textColor : '#eee',
+        allowToastClose : true,
+        hideAfter : 5000,
+        stack : 5,
+        textAlign : 'left',
+        position : 'bottom-right'
+    });
+}
+
+function createSuccessMessage(text) {
+    createMessage(text, '#079639', '#fff');
+}
+
+function createErrorMessage(text) {
+    createMessage(text, '#af150a', '#fff');
 }
 
 $(function ($) {
