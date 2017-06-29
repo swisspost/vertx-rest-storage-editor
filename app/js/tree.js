@@ -1,50 +1,40 @@
-/*
- * see http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
- */
-function getParameterByName(name) {
-    'use strict';
-    var url = window.location.href;
-    name = name.replace(/[\[\]]/g, '\\$&');
-    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
-        results = regex.exec(url);
-    if (!results) {
-        return null;
+'use strict';
+
+function paramSelected(value) {
+    var selected = getParameterByName('selected');
+    var treeBase = getParameterByName('treeBase');
+    // fix probably wrong uri with tree base instead without
+    if (selected) {
+        selected = selected.replace(treeBase, '')
+        var fixedUrl = updateURLParameter(window.location.href, 'selected', selected);
+        // update url
+        window.history.replaceState(undefined, undefined, fixedUrl);
     }
-    if (!results[2]) {
-        return '';
+
+    if (value === undefined || value === '') {
+        return treeBase + selected;
     }
-    return decodeURIComponent(results[2].replace(/\+/g, ' '));
+
+    var newUrl;
+    if (!selected || selected === null) {
+        newUrl = window.location.href + '&selected=' + value.replace(treeBase, '');
+    } else {
+        newUrl = updateURLParameter(window.location.href, 'selected', value.replace(treeBase, ''));
+    }
+
+    // update url
+    window.history.replaceState(undefined, undefined, newUrl);
+
+    return treeBase + getParameterByName('selected');
 }
 
-function hash(name, value) {
-    'use strict';
-    var hash;
-    try {
-        hash = window.location.hash;
-        if (hash.startsWith('#')) {
-            hash = hash.substring(1);
-        }
-        hash = JSON.parse(hash);
-    } catch(ex) {
-        hash = {};
-    }
-    if (value === undefined) {
-        return hash[name];
-    }
-    hash[name] = value;
-    hash = '#' + JSON.stringify(hash);
-    window.history.replaceState(undefined, undefined, hash);
-}
-
-var autoExpandToAndSelectPath = hash('selected');
+var autoExpandToAndSelectPath = paramSelected();
 
 function goHome() {
-    'use strict';
     window.location.href = settings.homeUrl;
 }
 
 function findNodesByUrl(searchUrl) {
-    'use strict';
     var nodes = [];
     var jstree = $('#tree').jstree();
     function recurse(nodeId) {
@@ -65,7 +55,6 @@ function findNodesByUrl(searchUrl) {
 }
 
 function gotoResource() {
-    'use strict';
     autoExpandToAndSelectPath = $('#nameOfResourceToSearch').val();
     var jstree = $('#tree').jstree();
     jstree.refresh();
@@ -73,7 +62,6 @@ function gotoResource() {
 }
 
 function createResource() {
-    'use strict';
     var relPath = $('#nameOfResourceToCreate').val();
     if (!relPath) {
         $('#nameOfResourceToCreate').effect('highlight', {color: '#F88'}, 200);
@@ -104,12 +92,12 @@ function createResource() {
 }
 
 function deleteResource() {
-    'use strict';
     var recursiveParam = ''
     if ($('#recursiveDelete').val() === 'on') {
         recursiveParam = '?recursive=true'
     }
     var url = $('#nameOfResourceToDelete').text() + recursiveParam;
+
     $.ajax({
         url: url,
         type: 'DELETE',
@@ -129,9 +117,39 @@ function deleteResource() {
     });
 }
 
-$(function ($) {
-    'use strict';
+// return one parameter by name
+function getParameterByName(name) {
+    var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+    if (results==null){
+       return null;
+    }
+    else{
+       return decodeURI(results[1]) || '/';
+    }
+}
 
+// update one parameter in an url
+function updateURLParameter(url, param, paramVal){
+    var newAdditionalURL = "";
+    var tempArray = url.split("?");
+    var baseURL = tempArray[0];
+    var additionalURL = tempArray[1];
+    var temp = "";
+    if (additionalURL) {
+        tempArray = additionalURL.split("&");
+        for (var i=0; i<tempArray.length; i++){
+            if(tempArray[i].split('=')[0] != param){
+                newAdditionalURL += temp + tempArray[i];
+                temp = "&";
+            }
+        }
+    }
+
+    var rows_txt = temp + "" + param + "=" + paramVal;
+    return baseURL + "?" + newAdditionalURL + rows_txt;
+}
+
+$(function ($) {
     if(settings.startInEditMode) {
         $('#edit-mode-toggler').prop('checked', true);
     }
@@ -214,7 +232,10 @@ $(function ($) {
     }
     var ROOT_NODES = [{
         text: treeBase,
-        data: {url: treeBase},
+        data: {
+            url: treeBase,
+            isMainTree: true
+        },
         icon: 'fa fa-folder',
         children: true
     }, {
@@ -479,7 +500,8 @@ $(function ($) {
             childrenNodes.push({
                 text: entry,
                 data: {
-                    url: nodeUrl + entry
+                    url: nodeUrl + entry,
+                    isMainTree: true
                 },
                 icon: isLeaf ? 'fa fa-file-text-o' : 'fa fa-folder',
                 children: !isLeaf   // force jstree to show a '+' icon and to be able to open a not-yet loaded tree
@@ -512,7 +534,7 @@ $(function ($) {
          * on page load we open the tree node-by-node to a preselected path
          * so we can 'stabilize' the view on "Browser refresh"
          *************************************************************************************************************/
-        if (autoExpandToAndSelectPath) {
+        if (autoExpandToAndSelectPath && node.data.isMainTree) {
             for (var i = 0; i < node.children.length; i++) {
                 var childNode = jstree.get_node(node.children[i]);
                 var childUrl = childNode.data.url;
@@ -563,7 +585,7 @@ $(function ($) {
         }
 
         openInEditor(null);
-        hash('selected', node.data.url);
+        paramSelected(node.data.url);
         if (node.data.url && !node.data.url.endsWith('/')) {
             if (!node.data.url.endsWith('[errorIndicator]')) {
                 openInEditor(node.data.url); // open in editor
@@ -593,14 +615,11 @@ $(function ($) {
 var currentUrlInEditor = null;
 // toggle raw <-> editor mode
 function toggleEditModeClicked() {
-    'use strict';
     openInEditor(currentUrlInEditor);
 }
 
 // start editor, either in Edit-Mode or in Raw-Mode
 function openInEditor(url) {
-    'use strict';
-
     if (currentUrlInEditor) {
         console.info('closing');
         $('#editor-iframe').attr('src', '');
