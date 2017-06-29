@@ -359,13 +359,14 @@ $(function ($) {
         plugins: [ 'contextmenu'],
         contextmenu: {
             show_at_node: false,
-            items: function (node) {
+            items: (node) => {
                 var m = {};
                 m.search = {
                     label: 'Search: ' + node.data.url,
                     icon: 'fa fa-search',
                     separator_after: true,
-                    action: function() {
+                    _disabled: node.parents[0] === '#bookmarkFolder' || node.id === '#bookmarkFolder',
+                    action: () => {
                         $('#dialogSearchResource').dialog('option', 'position', {
                             my: 'center top+50',
                             at: 'center top+50',
@@ -399,13 +400,13 @@ $(function ($) {
                                     callback(suggestions);
                                 });
                             },
-                            select: function (event, ui) {
+                            select: (event, ui) => {
                                this.value = ui.item.value;
                                 if (event.keyCode === 9) { // if TAB Key
                                     event.preventDefault();
                                     $('#nameOfResourceToSearch').focus();
                                 }
-                                window.setTimeout(function () {
+                                window.setTimeout(() => {
                                     $('#nameOfResourceToSearch').autocomplete('search');
                                 }, 10);
                                return false;
@@ -420,7 +421,8 @@ $(function ($) {
                     label: isBookmark ? 'remove from Bookmarks' : 'Bookmark this node',
                     icon: 'fa fa-thumb-tack',
                     separator_after: true,
-                    action: function () {
+                    _disabled: node.id === '#bookmarkFolder',
+                    action: () => {
                         if (isBookmark) {
                             var idx = bookmarkUrls.indexOf(node.data.url);
                             if (idx >= 0) {
@@ -436,7 +438,7 @@ $(function ($) {
                 };
                 var addAllowed = true, delAllowed = true;
                 if (security) {
-                    security.forEach(function (rule) {
+                    security.forEach((rule) => {
                         var regexp = rule.route;
                         if (!regexp.endsWith('$')) {
                             regexp += '$';
@@ -453,7 +455,7 @@ $(function ($) {
                     m.create = {
                         label: 'Create resource',
                         _disabled: !addAllowed,
-                        action: function() {
+                        action: () => {
                             $('#dialogCreateResource').dialog('option', 'position', {
                                 my: 'center top+50',
                                 at: 'center top+50',
@@ -469,7 +471,7 @@ $(function ($) {
                     label: node.data.url.endsWith('/') ? 'Delete whole tree' : 'Delete resource',
                     _disabled: !delAllowed || node.parents[0] === '#bookmarkFolder' || node.id === '#bookmarkFolder',
                     icon: 'fa fa-trash',
-                    action: function () {
+                    action: () => {
                         $('#dialogDeleteResource').dialog('option', 'position', {
                             my: 'center top+50',
                             at: 'center top+50',
