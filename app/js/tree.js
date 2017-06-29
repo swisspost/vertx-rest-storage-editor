@@ -93,7 +93,7 @@ function createResource() {
 
 function deleteResource() {
     var recursiveParam = ''
-    if ($('#recursiveDelete').val() === 'on') {
+    if ($('#recursiveDelete').is(":checked")) {
         recursiveParam = '?recursive=true'
     }
     var url = $('#nameOfResourceToDelete').text() + recursiveParam;
@@ -433,7 +433,7 @@ $(function ($) {
                 }
                 m.delete = {
                     label: node.data.url.endsWith('/') ? 'Delete whole tree' : 'Delete resource',
-                    _disabled: !delAllowed,
+                    _disabled: !delAllowed || node.parents[0] === '#bookmarkFolder' || node.id === '#bookmarkFolder',
                     icon: 'fa fa-trash',
                     action: function () {
                         $('#dialogDeleteResource').dialog('option', 'position', {
@@ -442,6 +442,11 @@ $(function ($) {
                             of: window,
                             collision: 'fit'
                         }).dialog('open');
+                        if (!settings.deleteRecursiveVisible || !node.data.url.endsWith('/')) {
+                            $('#recursiveDeleteWrapper').hide();
+                        } else {
+                            $('#recursiveDeleteWrapper').show();
+                        }
                         $('#nameOfResourceToDelete').text(node.data.url);
                     }
                 };

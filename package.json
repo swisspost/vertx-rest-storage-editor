@@ -12,7 +12,7 @@
     }
   ],
   "scripts": {
-    "start": "start http://localhost:54321/index.html?treeBase=http://teddie01.pnet.ch:7020/eagle/server && http-server -p 54321 -c-1",
+    "start": "start http://localhost:54321/index.html?treeBase=/eagle/server && http-server -p 54321 -c-1",
     "test": "karma start test/karma.conf.js"
   },
   "repository": {
