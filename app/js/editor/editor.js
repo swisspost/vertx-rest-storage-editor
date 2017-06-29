@@ -421,7 +421,9 @@ function init() {
         });
         updateHeaderBar();
 
-        $.event.props.push('dataTransfer');
+        if ($.event.props) {
+            $.event.props.push('dataTransfer');
+        }
         var body = $('body')
             .bind( 'dragenter dragover', false)
             .bind( 'drop', function( e ) {

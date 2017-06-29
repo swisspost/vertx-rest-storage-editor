@@ -13,6 +13,7 @@ module.exports = function(grunt) {
             vendor: {
                 files: [
                     {expand: true, cwd: 'node_modules/jquery/dist', src: ['jquery.js'], dest: 'vendor'},
+                    {expand: true, cwd: 'node_modules/jquery-toast-plugin/dist', src: ['jquery.toast.min.css', 'jquery.toast.min.js'], dest: 'vendor'},
                     {expand: true, cwd: 'node_modules/jquery-ui-dist', src: ['jquery-ui.*', 'images/*'], dest: 'vendor'},
                     {expand: true, cwd: 'node_modules/jquery.cookie', src: ['jquery.cookie.js'], dest: 'vendor'},
                     {expand: true, cwd: 'node_modules/validate-js', src: ['validate.js'], dest: 'vendor'},

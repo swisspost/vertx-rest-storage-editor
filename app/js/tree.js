@@ -72,36 +72,59 @@ function createResource() {
     $.ajax({
         url: url,
         type: 'PUT',
-        data: '{}'
-    }).then(function () {
-        var affectedParentNodes = findNodesByUrl(basePath);
-        autoExpandToAndSelectPath = url;
-        var jstree = $('#tree').jstree();
-        jstree.deselect_all();
-        affectedParentNodes.forEach(function(node) {
-            node.data.childrenNames = null;
-            jstree.refresh_node(node);
-        });
-        // jstree.refresh_node(basePath);
-        $('#dialogCreateResource').parent().effect('highlight', {color: '#8F8'}, 200);
+        data: '{}',
+        beforeSend: function(request) {
+            request.setRequestHeader("Access-Control-Allow-Methods", "PUT");
+        },
+        success: () => {
+            var affectedParentNodes = findNodesByUrl(basePath);
+            autoExpandToAndSelectPath = url;
+            var jstree = $('#tree').jstree();
+            jstree.deselect_all();
+            affectedParentNodes.forEach(function(node) {
+                node.data.childrenNames = null;
+                jstree.refresh_node(node);
+            });
+            createSuccessMessage(`<b>Created node</b><br><span>${relPath}</span>`);
+            // jstree.refresh_node(basePath);
+            $('#dialogCreateResource').dialog('close');
+        },
+        error: (err) => {
+            createErrorMessage(`<b>${err.statusText}</b><br><span>${err.responseText}</span>`);
+        }
     });
 }
 
 function deleteResource() {
-    var url = $('#nameOfResourceToDelete').text();
+    var recursiveParam = ''
+    if ($('#recursiveDelete').is(":checked")) {
+        recursiveParam = '?recursive=true'
+    }
+    var url = $('#nameOfResourceToDelete').text() + recursiveParam;
+
     $.ajax({
         url: url,
-        type: 'DELETE'
-    }).then(function () {
-        var jstree = $('#tree').jstree();
-        var affectedNodes = findNodesByUrl(url);
-        affectedNodes.forEach(function (node) {
-            jstree.delete_node(node);
-            var parentNode = jstree.get_node(node.parent);
-            parentNode.data.childrenNames = null;
-            jstree.refresh_node(parentNode);
-        });
-        $('#dialogDeleteResource').dialog('close');
+        type: 'DELETE',
+        beforeSend: function(request) {
+            request.setRequestHeader("Access-Control-Allow-Methods", "DELETE");
+        },
+        success: () => {
+            var jstree = $('#tree').jstree();
+            // replace recursive true param if exists
+            url = url.replace('?recursive=true', '');
+            var affectedNodes = findNodesByUrl(url);
+            affectedNodes.forEach(function (node) {
+                createSuccessMessage(`<b>Deleted node</b><br><span>${node.text}</span>`);
+                jstree.delete_node(node);
+                var parentNode = jstree.get_node(node.parent);
+                parentNode.data.childrenNames = null;
+                jstree.refresh_node(parentNode);
+            });
+            $('#dialogDeleteResource').dialog('close');
+        },
+        error: (err) => {
+            createErrorMessage(`<b>${err.statusText}</b><br><span>${err.responseText}</span>`);
+        }
     });
 }
 
@@ -137,6 +160,29 @@ function updateURLParameter(url, param, paramVal){
     return baseURL + "?" + newAdditionalURL + rows_txt;
 }
 
+// create toast message
+function createMessage(text, color) {
+    $.toast({ 
+        text : text, 
+        showHideTransition : 'slide',
+        bgColor : color,
+        textColor : '#eee',
+        allowToastClose : true,
+        hideAfter : 5000,
+        stack : 5,
+        textAlign : 'left',
+        position : 'bottom-right'
+    });
+}
+
+function createSuccessMessage(text) {
+    createMessage(text, '#079639', '#fff');
+}
+
+function createErrorMessage(text) {
+    createMessage(text, '#af150a', '#fff');
+}
+
 $(function ($) {
     if(settings.startInEditMode) {
         $('#edit-mode-toggler').prop('checked', true);
@@ -168,7 +214,7 @@ $(function ($) {
     }
 
     /**************************************************************************************************************
-     * Setup three modal dialogs
+     * Setup modal dialogs
      *************************************************************************************************************/
     $('#dialogSearchResource').dialog({
         autoOpen: false,
@@ -313,17 +359,18 @@ $(function ($) {
         plugins: [ 'contextmenu'],
         contextmenu: {
             show_at_node: false,
-            items: function (node) {
+            items: (node) => {
                 var m = {};
                 m.search = {
                     label: 'Search: ' + node.data.url,
                     icon: 'fa fa-search',
                     separator_after: true,
-                    action: function() {
+                    _disabled: node.parents[0] === '#bookmarkFolder' || node.id === '#bookmarkFolder',
+                    action: () => {
                         $('#dialogSearchResource').dialog('option', 'position', {
-                            my: 'left center',
-                            at: 'left+150 top',
-                            of: $('#tree').jstree().get_node(node, true),
+                            my: 'center top+50',
+                            at: 'center top+50',
+                            of: window,
                             collision: 'fit'
                         }).dialog('open');
                         $('#nameOfResourceToSearch').autocomplete({
@@ -353,13 +400,13 @@ $(function ($) {
                                     callback(suggestions);
                                 });
                             },
-                            select: function (event, ui) {
+                            select: (event, ui) => {
                                this.value = ui.item.value;
                                 if (event.keyCode === 9) { // if TAB Key
                                     event.preventDefault();
                                     $('#nameOfResourceToSearch').focus();
                                 }
-                                window.setTimeout(function () {
+                                window.setTimeout(() => {
                                     $('#nameOfResourceToSearch').autocomplete('search');
                                 }, 10);
                                return false;
@@ -374,7 +421,8 @@ $(function ($) {
                     label: isBookmark ? 'remove from Bookmarks' : 'Bookmark this node',
                     icon: 'fa fa-thumb-tack',
                     separator_after: true,
-                    action: function () {
+                    _disabled: node.id === '#bookmarkFolder',
+                    action: () => {
                         if (isBookmark) {
                             var idx = bookmarkUrls.indexOf(node.data.url);
                             if (idx >= 0) {
@@ -390,7 +438,7 @@ $(function ($) {
                 };
                 var addAllowed = true, delAllowed = true;
                 if (security) {
-                    security.forEach(function (rule) {
+                    security.forEach((rule) => {
                         var regexp = rule.route;
                         if (!regexp.endsWith('$')) {
                             regexp += '$';
@@ -407,11 +455,11 @@ $(function ($) {
                     m.create = {
                         label: 'Create resource',
                         _disabled: !addAllowed,
-                        action: function() {
+                        action: () => {
                             $('#dialogCreateResource').dialog('option', 'position', {
-                                my: 'left center',
-                                at: 'left+150 top',
-                                of: $('#tree').jstree().get_node(node, true),
+                                my: 'center top+50',
+                                at: 'center top+50',
+                                of: window,
                                 collision: 'fit'
                             }).dialog('open');
                             $('#nameOfResourceToCreateBaseUrl').text(node.data.url);
@@ -421,15 +469,20 @@ $(function ($) {
                 }
                 m.delete = {
                     label: node.data.url.endsWith('/') ? 'Delete whole tree' : 'Delete resource',
-                    _disabled: !delAllowed,
+                    _disabled: !delAllowed || node.parents[0] === '#bookmarkFolder' || node.id === '#bookmarkFolder',
                     icon: 'fa fa-trash',
-                    action: function () {
+                    action: () => {
                         $('#dialogDeleteResource').dialog('option', 'position', {
-                            my: 'left center',
-                            at: 'left+150 top',
-                            of: $('#tree').jstree().get_node(node, true),
+                            my: 'center top+50',
+                            at: 'center top+50',
+                            of: window,
                             collision: 'fit'
                         }).dialog('open');
+                        if (!settings.deleteRecursiveVisible || !node.data.url.endsWith('/')) {
+                            $('#recursiveDeleteWrapper').hide();
+                        } else {
+                            $('#recursiveDeleteWrapper').show();
+                        }
                         $('#nameOfResourceToDelete').text(node.data.url);
                     }
                 };
@@ -609,8 +662,9 @@ function toggleEditModeClicked() {
 // start editor, either in Edit-Mode or in Raw-Mode
 function openInEditor(url) {
     if (currentUrlInEditor) {
-        console.log('closing');
+        console.info('closing');
         $('#editor-iframe').attr('src', '');
+        $('#empty-editor-placeholder').fadeTo(400,1);
     }
     currentUrlInEditor = url;
 
@@ -621,8 +675,9 @@ function openInEditor(url) {
     }
     if (url) {
         window.setTimeout(function () {
-            console.log('opening '+url);
+            console.info('opening '+url);
             $('#editor-iframe').attr('src', url);
+            $('#empty-editor-placeholder').fadeTo(1,0);
         }, 10);
     }
 }
