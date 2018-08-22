@@ -73,6 +73,7 @@ function createResource() {
         url: url,
         type: 'PUT',
         data: '{}',
+        contentType: 'application/json',
         beforeSend: function(request) {
             request.setRequestHeader("Access-Control-Allow-Methods", "PUT");
         },
