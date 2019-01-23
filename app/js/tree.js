@@ -1,5 +1,8 @@
 'use strict';
 
+// initially set home button path
+document.getElementById("home-button").href = settings.homeUrl;
+
 function paramSelected(value) {
     var selected = getParameterByName('selected');
     var treeBase = getParameterByName('treeBase');
@@ -29,10 +32,6 @@ function paramSelected(value) {
 }
 
 var autoExpandToAndSelectPath = paramSelected();
-
-function goHome() {
-    window.location.href = settings.homeUrl;
-}
 
 function findNodesByUrl(searchUrl) {
     var nodes = [];
@@ -662,7 +661,6 @@ function toggleEditModeClicked() {
 // start editor, either in Edit-Mode or in Raw-Mode
 function openInEditor(url) {
     if (currentUrlInEditor) {
-        console.info('closing');
         $('#editor-iframe').attr('src', '');
         $('#empty-editor-placeholder').fadeTo(400,1);
     }
@@ -675,7 +673,6 @@ function openInEditor(url) {
     }
     if (url) {
         window.setTimeout(function () {
-            console.info('opening '+url);
             $('#editor-iframe').attr('src', url);
             $('#empty-editor-placeholder').fadeTo(1,0);
         }, 10);
