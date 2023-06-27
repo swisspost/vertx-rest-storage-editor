@@ -29,14 +29,14 @@ jobs:
       - name: Install dependencies
         run: |
           rm -rf node_modules
-          npm i node@14 --no-save
+          npm i node@18 --no-save
 
       - name: Release (dry-run)
         if: github.event_name == 'pull_request'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npx -p node@14 -c "npx semantic-release --dry-run"
+        run: npx -p node@18 -c "npx semantic-release --dry-run"
 
       - name: Release
         if: github.event_name == 'push'
@@ -45,4 +45,4 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           # Override node 10 .npmrc created by Gihub Action
           NPM_CONFIG_USERCONFIG: ./.npmrc
-        run: npx -p node@14 -c "npx semantic-release"
+        run: npx -p node@18 -c "npx semantic-release"
