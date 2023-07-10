@@ -20,6 +20,20 @@
     "type": "git",
     "url": "https://github.com/swisspush/vertx-rest-storage-editor.git"
   },
+  "release": {
+    "branches": [
+      "master",
+      {
+        "name": "develop",
+        "channel": "next"
+      }
+    ],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/npm",
+      "@semantic-release/git"
+    ]
+  },
   "dependencies": {
     "ace-builds": "1.4.2",
     "bootstrap": "3.4.0",
