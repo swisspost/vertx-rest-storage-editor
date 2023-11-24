@@ -1,14 +1,10 @@
 'use strict';
 
-
 // initially set home button path
 document.getElementById("home-button").href = settings.homeUrl;
 function paramSelected(value) {
 
     var selected = getParameterByName('selected');
-// don't care about this, just for test
-    var selected1 = getParameterByName('selected');
-    selected = selected1;
     var treeBase = getParameterByName('treeBase');
     // fix probably wrong uri with tree base instead without
     if (selected) {
