@@ -19,7 +19,7 @@ function paramSelected(value) {
     }
 
     var newUrl;
-    if (!selected || selected === null) {
+    if (!selected) {
         newUrl = window.location.href + '&selected=' + value.replace(treeBase, '');
     } else {
         newUrl = updateURLParameter(window.location.href, 'selected', value.replace(treeBase, ''));
