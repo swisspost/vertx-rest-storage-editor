@@ -30,13 +30,13 @@ jobs:
         run: |
           rm -rf node_modules
           npm i node@v20-lts --no-save
-
+          npm -g install @semantic-release/git semantic-release && semantic-release
       - name: Release (dry-run)
         if: github.event_name == 'pull_request'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npx -p node@v20-lts -c "npx @semantic-release/git semantic-release --dry-run"
+        run: npx -p node@v20-lts -c "npx semantic-release --dry-run"
 
       - name: Release
         if: github.event_name == 'push'
@@ -45,4 +45,4 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           # Override node 10 .npmrc created by Gihub Action
           NPM_CONFIG_USERCONFIG: ./.npmrc
-        run: npx -p node@v2-lts -c "npx @semantic-release/git semantic-release"
+        run: npx -p node@v2-lts -c "npx semantic-release"
