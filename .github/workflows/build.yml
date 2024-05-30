@@ -31,7 +31,6 @@ jobs:
         run: |
           npm install
           npm install grunt-cli -g
-          npm -g install @semantic-release/git semantic-release && semantic-release
 
       - name: Grunt build
         run: grunt build
