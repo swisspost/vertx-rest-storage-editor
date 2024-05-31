@@ -29,7 +29,7 @@ jobs:
       - name: Install dependencies
         run: |
           rm -rf node_modules
-          npm i node@v20-lts --no-save
+          npm i node@20.11.1 --no-save
           npm -g install @semantic-release/git semantic-release && semantic-release
       - name: Release (dry-run)
         if: github.event_name == 'pull_request'
