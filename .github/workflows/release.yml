@@ -35,7 +35,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npx -p node@v20-lts -c "npx semantic-release --dry-run"
+        run: npx semantic-release --dry-run --no-ci
 
       - name: Release
         if: github.event_name == 'push'
@@ -44,4 +44,4 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           # Override node 10 .npmrc created by Gihub Action
           NPM_CONFIG_USERCONFIG: ./.npmrc
-        run: npx -p node@v20-lts -c "npx semantic-release"
+        run: npx semantic-release --no-ci
