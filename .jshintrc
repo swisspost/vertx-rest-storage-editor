@@ -19,7 +19,6 @@
     "unused": true,
     "strict": "func",
     "sub": true, // allow object['field'] access variant
-
     "asi": false,
     "boss": false,
     "debug": false,
