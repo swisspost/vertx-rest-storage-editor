@@ -6,6 +6,7 @@ document.getElementById("home-button").href = settings.homeUrl;
 function paramSelected(value) {
     var selected = getParameterByName('selected');
     var treeBase = getParameterByName('treeBase');
+
     // fix probably wrong uri with tree base instead without
     if (selected) {
         selected = selected.replace(treeBase, '')
