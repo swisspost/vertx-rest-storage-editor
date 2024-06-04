@@ -1,6 +1,6 @@
 {
   "name": "vertx-rest-storage-editor",
-  "version": "2.6.0",
+  "version": "2.6.1",
   "description": "The vertx-rest-storage-editor is the front end component for vertx-rest-storage-editor.",
   "author": "Matthias Baldi",
   "license": "Apache-2.0",
@@ -18,7 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/swisspush/vertx-rest-storage-editor.git"
+    "url": "https://github.com/swisspost/vertx-rest-storage-editor.git"
   },
   "release": {
     "branches": [
