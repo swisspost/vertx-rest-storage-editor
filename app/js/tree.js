@@ -495,7 +495,8 @@ $(function ($) {
                             $('#dialogImportResource').dialog(opt).dialog('open');
                             $('#nameOfResourceToUploadTo').text(node.data.url);
                             $('#warningCheckbox').prop('checked', false);
-                            $('#importButton').prop("disabled", true);
+                            $('#importButton').prop('disabled', true);
+                            $('#status').text('');
                         }
                     };
                 }
