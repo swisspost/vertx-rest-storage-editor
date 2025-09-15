@@ -94,6 +94,10 @@ function createResource() {
     });
 }
 
+function importResource(e) {
+
+}
+
 function deleteResource() {
     var recursiveParam = ''
     if ($('#recursiveDelete').is(":checked")) {
@@ -131,10 +135,10 @@ function deleteResource() {
 function getParameterByName(name) {
     var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
     if (results==null){
-       return null;
+        return null;
     }
     else{
-       return decodeURI(results[1]) || '/';
+        return decodeURI(results[1]) || '/';
     }
 }
 
@@ -161,8 +165,8 @@ function updateURLParameter(url, param, paramVal){
 
 // create toast message
 function createMessage(text, color) {
-    $.toast({ 
-        text : text, 
+    $.toast({
+        text : text,
         showHideTransition : 'slide',
         bgColor : color,
         textColor : '#eee',
@@ -186,6 +190,7 @@ $(function ($) {
     if(settings.startInEditMode) {
         $('#edit-mode-toggler').prop('checked', true);
     }
+
     $('#edit-mode-toggler').checkboxradio({
         icon: false
     });
@@ -400,7 +405,7 @@ $(function ($) {
                                 });
                             },
                             select: (event, ui) => {
-                               this.value = ui.item.value;
+                                this.value = ui.item.value;
                                 if (event.keyCode === 9) { // if TAB Key
                                     event.preventDefault();
                                     $('#nameOfResourceToSearch').focus();
@@ -408,7 +413,7 @@ $(function ($) {
                                 window.setTimeout(() => {
                                     $('#nameOfResourceToSearch').autocomplete('search');
                                 }, 10);
-                               return false;
+                                return false;
                             }
                         });
                         $('#nameOfResourceToSearch').val(node.data.url);
@@ -435,7 +440,7 @@ $(function ($) {
                         jstree.refresh_node('#bookmarkFolder');
                     }
                 };
-                var addAllowed = true, delAllowed = true;
+                var addAllowed = true, delAllowed = true, exportAllowed = false, importAllowed = false;
                 if (security) {
                     security.forEach((rule) => {
                         var regexp = rule.route;
@@ -446,6 +451,8 @@ $(function ($) {
                         if (regexp.test(node.data.url)) {
                             addAllowed = addAllowed && rule.add;
                             delAllowed = delAllowed && rule.del;
+                            exportAllowed = exportAllowed || rule.export;
+                            importAllowed = importAllowed || rule.import;
                         }
                     });
                 }
@@ -463,6 +470,32 @@ $(function ($) {
                             }).dialog('open');
                             $('#nameOfResourceToCreateBaseUrl').text(node.data.url);
                             $('#nameOfResourceToCreate').val('');
+                        }
+                    };
+                    m.export = {
+                        label: 'Export resource',
+                        _disabled: !exportAllowed,
+                        icon: 'fa fa-download',
+                        action: () => {
+                            window.open(node.data.url + '?export' , '_blank');
+                        }
+                    };
+                    m.import = {
+                        label: 'Import resource',
+                        _disabled: !importAllowed,
+                        icon: 'fa fa-upload',
+                        action: () => {
+                            var opt = {
+                                my: 'center top+50',
+                                at: 'center top+50',
+                                of: window,
+                                width: '30%',
+                                collision: 'fit'
+                            };
+                            $('#dialogImportResource').dialog(opt).dialog('open');
+                            $('#nameOfResourceToUploadTo').text(node.data.url);
+                            $('#warningCheckbox').prop('checked', false);
+                            $('#importButton').prop("disabled", true);
                         }
                     };
                 }
@@ -485,7 +518,7 @@ $(function ($) {
                         $('#nameOfResourceToDelete').text(node.data.url);
                     }
                 };
-            return m;
+                return m;
             }
         }
     });
@@ -546,6 +579,19 @@ $(function ($) {
                 icon: isLeaf ? 'fa fa-file-text-o' : 'fa fa-folder',
                 children: !isLeaf   // force jstree to show a '+' icon and to be able to open a not-yet loaded tree
             });
+        }
+
+        /**************************************************************************************************************
+         * add nodes name it to import list
+         *************************************************************************************************************/
+        for (var index = 0; index < node.children.length; index++) {
+            var childNodeForImport = jstree.get_node(node.children[index]);
+            var childUrlForImport = childNodeForImport.data.url;
+            var childNameForImport = childNodeForImport.data.text;
+            $('#nameOfResourceRoot').append($('<option>', {
+                value: childUrlForImport,
+                text : childNameForImport
+            }));
         }
         return childrenNodes;
     }
@@ -648,15 +694,15 @@ $(function ($) {
         node.data.childrenNames = null;
         node.state.loaded = false;
         jstree.delete_node(node.children);
-   });
+    });
 });
-
 
 var currentUrlInEditor = null;
 // toggle raw <-> editor mode
 function toggleEditModeClicked() {
     openInEditor(currentUrlInEditor);
 }
+
 
 // start editor, either in Edit-Mode or in Raw-Mode
 function openInEditor(url) {
@@ -678,3 +724,47 @@ function openInEditor(url) {
         }, 10);
     }
 }
+
+$(function () {
+    $('#uploadForm').on('submit', function (e) {
+        e.preventDefault(); // Stop normal form submit
+        // Ask the user again
+        if (!confirm('Are you sure you want to upload this file?')) {
+            $('#status').text('Upload cancelled.');
+            return;
+        }
+        var formData = new FormData(this);
+
+        $.ajax({
+            url: settings.uploadUrl,
+            type: 'POST',
+            data: formData,
+            processData: false,   // 🚨 important: don't let jQuery process
+            contentType: false,   // 🚨 important: jQuery must not set contentType
+            success: function (res) {
+                $('#dialogImportResource').dialog("close")
+            },
+            error: function (err) {
+                alert('Upload failed!');
+            },
+            xhr: function () {
+                // Optional: progress bar
+                var xhr = new window.XMLHttpRequest();
+                xhr.upload.addEventListener("progress", function (evt) {
+                    if (evt.lengthComputable) {
+                        var percent = Math.round((evt.loaded / evt.total) * 100);
+                        $('#status').text('Uploading: ' + percent + '%');
+                    }
+                }, false);
+                return xhr;
+            }
+        });
+    });
+    $('#warningCheckbox').on('change', function() {
+        if ($(this).is(':checked')) {
+            $('#importButton').prop('disabled', false); // Enable the button
+        } else {
+            $('#importButton').prop('disabled', true); // Disable the button
+        }
+    });
+});
