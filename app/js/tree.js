@@ -581,18 +581,6 @@ $(function ($) {
             });
         }
 
-        /**************************************************************************************************************
-         * add nodes name it to import list
-         *************************************************************************************************************/
-        for (var index = 0; index < node.children.length; index++) {
-            var childNodeForImport = jstree.get_node(node.children[index]);
-            var childUrlForImport = childNodeForImport.data.url;
-            var childNameForImport = childNodeForImport.data.text;
-            $('#nameOfResourceRoot').append($('<option>', {
-                value: childUrlForImport,
-                text : childNameForImport
-            }));
-        }
         return childrenNodes;
     }
 
