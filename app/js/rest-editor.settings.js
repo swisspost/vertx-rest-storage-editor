@@ -4,7 +4,8 @@ var settings = {
     pageSize: 500,
     startInEditMode: true,       // if 'false' we start in Raw-Mode
     deleteRecursiveVisible: false,
-    uploadUrl: '/server/upload'
+    uploadUrl: '/server/upload',
+    exportUrlParameter: '?export'
 };
 
 // routes to disallow additions or deletions (blacklist)

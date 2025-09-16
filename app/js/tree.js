@@ -472,33 +472,38 @@ $(function ($) {
                             $('#nameOfResourceToCreate').val('');
                         }
                     };
-                    m.export = {
-                        label: 'Export resource',
-                        _disabled: !exportAllowed,
-                        icon: 'fa fa-download',
-                        action: () => {
-                            window.open(node.data.url + '?export' , '_blank');
-                        }
-                    };
-                    m.import = {
-                        label: 'Import resource',
-                        _disabled: !importAllowed,
-                        icon: 'fa fa-upload',
-                        action: () => {
-                            var opt = {
-                                my: 'center top+50',
-                                at: 'center top+50',
-                                of: window,
-                                width: '30%',
-                                collision: 'fit'
-                            };
-                            $('#dialogImportResource').dialog(opt).dialog('open');
-                            $('#nameOfResourceToUploadTo').text(node.data.url);
-                            $('#warningCheckbox').prop('checked', false);
-                            $('#importButton').prop('disabled', true);
-                            $('#status').text('');
-                        }
-                    };
+                    if (exportAllowed) {
+                        m.export = {
+                            label: 'Export resource',
+                            _disabled: !exportAllowed,
+                            icon: 'fa fa-download',
+                            action: () => {
+                                window.open(node.data.url + settings.exportUrlParameter, '_blank');
+                            }
+                        };
+                    }
+
+                    if (importAllowed) {
+                        m.import = {
+                            label: 'Import resource',
+                            _disabled: !importAllowed,
+                            icon: 'fa fa-upload',
+                            action: () => {
+                                var opt = {
+                                    my: 'center top+50',
+                                    at: 'center top+50',
+                                    of: window,
+                                    width: '30%',
+                                    collision: 'fit'
+                                };
+                                $('#dialogImportResource').dialog(opt).dialog('open');
+                                $('#nameOfResourceToUploadTo').text(node.data.url);
+                                $('#warningCheckbox').prop('checked', false);
+                                $('#importButton').prop('disabled', true);
+                                $('#status').text('');
+                            }
+                        };
+                    }
                 }
                 m.delete = {
                     label: node.data.url.endsWith('/') ? 'Delete whole tree' : 'Delete resource',
