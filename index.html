@@ -68,6 +68,28 @@
             </form>
         </div>
 
+        <div id="dialogImportResource" title="Import resource">
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div>
+                    <b>upload resource to:</b><br>
+                    <i id="nameOfResourceToUploadTo" style="font-family: monospace"></i>
+                </div><br>
+                <div>
+                    <input type="file" name="myfile" id="fileInput" />
+                    <br>
+                    <i id="status"> </i>
+                </div><hr>
+                <label for="warningCheckbox">
+                    <input type="checkbox" id="warningCheckbox" name="agreeToWarning">
+                    I understand the risks and wish to proceed the import.
+                </label>
+                <br>
+                <div class="text-right">
+                    <input id="importButton" type="submit" value="Import" class="btn btn-primary">
+                </div>
+            </form>
+        </div>
+
         <div id="dialogDeleteResource" title="Delete resource">
             <form action="javascript:deleteResource();">
                 <div>

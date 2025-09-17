@@ -3,15 +3,17 @@ var settings = {
     homeUrl: '/eagle',
     pageSize: 500,
     startInEditMode: true,       // if 'false' we start in Raw-Mode
-    deleteRecursiveVisible: false
+    deleteRecursiveVisible: false,
+    uploadUrl: '/server/upload',
+    exportUrlParameter: '?export'
 };
 
 // routes to disallow additions or deletions (blacklist)
 var security = [
     // {route: '/', add: true, del: false},                  // matches all collections
-    // {route: '/path/to/source/1', add: true, del: false},  // matches URLs which 'ends' with this pattern - so this is a single resource
-    // {route: '/path/to/source/', add: false, del: false},  // matches the collection - but _not_ it's children
-    // {route: '/path/to/all/.*', add: false, del: false}    // if you want to 'lock' a whole tree (incl. subntree), append ".*"
+    // {route: '/path/to/source/1', add: true, del: false, import: false, export: false},  // matches URLs which 'ends' with this pattern - so this is a single resource
+    // {route: '/path/to/source/', add: false, del: false, import: true},  // matches the collection - but _not_ it's children
+    // {route: '/path/to/all/.*', add: false, del: false, export: false}    // if you want to 'lock' a whole tree (incl. subntree), append ".*"
 ];
 
 // icons for the documents in the tree by FontAwesome - not used at the moment
