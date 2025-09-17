@@ -1,6 +1,6 @@
 {
   "name": "vertx-rest-storage-editor",
-  "version": "2.7.0",
+  "version": "2.8.0",
   "description": "The vertx-rest-storage-editor is the front end component for vertx-rest-storage-editor.",
   "author": "Matthias Baldi",
   "license": "Apache-2.0",
