@@ -238,6 +238,11 @@ $(function ($) {
         modal: true,
         width: '50vw'
     });
+    $('#dialogImportResource').dialog({
+        autoOpen: false,
+        modal: true,
+        width: '50vw'
+    });
 
     /**************************************************************************************************************
      * Helper to map Vertx-Rest-Storage proprietary JSON-format for 'directories' to a flat array of strings
