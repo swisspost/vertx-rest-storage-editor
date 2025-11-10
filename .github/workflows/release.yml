@@ -48,7 +48,7 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx @semantic-release/npm --dry-run --no-ci
+        run: npx semantic-release --dry-run --no-ci
 
       - name: Release
         if: github.event_name == 'push'
@@ -56,4 +56,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Override node 10 .npmrc created by Gihub Action
           NPM_CONFIG_USERCONFIG: ./.npmrc
-        run: npx @semantic-release/npm
+        run: npx semantic-release
