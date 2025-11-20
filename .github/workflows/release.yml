@@ -3,7 +3,6 @@ on:
   pull_request:
   push:
     branches:
-      - develop
       - master
 
 permissions:
@@ -52,4 +51,4 @@ jobs:
 
       - name: Release
         if: github.event_name == 'push'
-        run: npm publish --dry-run --provenance
+        run: npm publish --provenance
