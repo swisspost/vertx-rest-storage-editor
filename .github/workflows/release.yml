@@ -52,4 +52,4 @@ jobs:
 
       - name: Release
         if: github.event_name == 'push'
-        run: npm publish --provenance
+        run: npm publish --dry-run --provenance
