@@ -7,9 +7,7 @@ on:
       - master
 
 permissions:
-  contents: write # to be able to publish a GitHub release
-  issues: write # to be able to comment on released issues
-  pull-requests: write # to be able to comment on released pull requests
+  contents: read # to be able to publish a GitHub release
   id-token: write # to enable use of OIDC for trusted publishing and npm provenance
 
 env:
@@ -33,23 +31,23 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: "https://registry.npmjs.org"
+
+      # Trusted publishing requires npm 11.5.1 or later.
+      - name: Update NPM for trusted publishing
+        run: |
+          npm install -g npm@latest
+          echo "npm: $(npm -v)"
 
       - name: Install dependencies
         run: |
           rm -rf node_modules
           npm i node@v20-lts --no-save
 
-      # Trusted publishing requires npm 11.5.1 or later.
-      - name: Update NPM for trusted publishing
-        run: |
-          npm update -g npm
-          echo "npm: $(npm -v)"
-
       - name: Release (dry-run)
         if: github.event_name == 'pull_request'
-        run: npm publish --dry-run --provenance
+        run: npm publish --dry-run
 
       - name: Release
         if: github.event_name == 'push'
-        run: npm publish --provenance --access public
+        run: npm publish
