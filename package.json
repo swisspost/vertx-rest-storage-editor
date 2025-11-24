@@ -17,7 +17,17 @@
     "test": "karma start test/karma.conf.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "app",
+    "test",
+    "*.html",
+    ".jshintrc",
+    ".github",
+    "*.js",
+    "*.json",
+    "LICENCE",
+    "README.md"
+
   ],
   "repository": {
     "type": "git",
