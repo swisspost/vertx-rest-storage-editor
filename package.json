@@ -27,7 +27,6 @@
     "*.json",
     "LICENCE",
     "README.md"
-
   ],
   "repository": {
     "type": "git",
