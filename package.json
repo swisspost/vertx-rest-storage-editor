@@ -16,6 +16,9 @@
     "build": "grunt",
     "test": "karma start test/karma.conf.js"
   },
+  "files": [
+    "dist"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/swisspost/vertx-rest-storage-editor.git"
