@@ -45,8 +45,8 @@ jobs:
           npm i node@v20-lts --no-save
           npm install grunt-cli -g
 
-      - name: Grunt build
-        run: grunt build
+      - name: Grunt build and package
+        run: grunt default
 
       - name: Release (dry-run)
         if: github.ref_name != 'master' && github.event_name == 'pull_request'
