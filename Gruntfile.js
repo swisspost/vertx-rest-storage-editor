@@ -7,7 +7,7 @@ module.exports = function(grunt) {
         // clean up build folders
         clean: {
             options: { force: true },
-            build: ['vendor/**', '<%= pkg.name %>-*.zip']
+            build: ['vendor/**', 'dist/<%= pkg.name %>-*.zip']
         },
         copy: {
             vendor: {
@@ -37,7 +37,7 @@ module.exports = function(grunt) {
         compress: {
             main: {
                 options: {
-                    archive: '<%= pkg.name %>-<%= pkg.version %>.zip'
+                    archive: 'dist/<%= pkg.name %>-<%= pkg.version %>.zip'
                 },
                 files: [
                     {src: ['editor.html', 'index.html', 'package.json', 'README.md'], dest: ''},
