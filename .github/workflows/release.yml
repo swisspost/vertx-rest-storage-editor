@@ -39,15 +39,15 @@ jobs:
           npm install -g npm@latest
           echo "npm: $(npm -v)"
 
-      - name: Install dependencies
+      - name: Install dependencies & build package
         run: |
-          rm -rf node_modules
-          npm i node@v20-lts --no-save
+          npm install
+          npm run build
 
       - name: Release (dry-run)
-        if: github.event_name == 'pull_request'
+        if: github.ref_name != 'master' && github.event_name == 'pull_request'
         run: npm publish --dry-run
 
       - name: Release
-        if: github.event_name == 'push'
+        if: github.ref_name == 'master' && github.event_name != 'pull_request' && github.repository == 'swisspost/vertx-rest-storage-editor'
         run: npm publish
