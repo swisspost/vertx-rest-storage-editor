@@ -17,7 +17,7 @@
     "test": "karma start test/karma.conf.js"
   },
   "files": [
-    "dist",
+    "vendor",
     "app",
     "test",
     "*.html",
