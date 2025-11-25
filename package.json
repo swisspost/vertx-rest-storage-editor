@@ -22,7 +22,6 @@
     "test",
     "*.html",
     ".jshintrc",
-    ".github",
     "*.js",
     "*.json",
     "LICENCE",
