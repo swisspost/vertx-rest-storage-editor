@@ -7,9 +7,7 @@ on:
       - master
 
 permissions:
-  contents: write # to be able to publish a GitHub release
-  issues: write # to be able to comment on released issues
-  pull-requests: write # to be able to comment on released pull requests
+  contents: read # to be able to publish a GitHub release
   id-token: write # to enable use of OIDC for trusted publishing and npm provenance
 
 env:
@@ -24,36 +22,32 @@ jobs:
     environment: npm-release
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: false
+
       - name: Setup node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - name: Install dependencies
-        run: |
-          rm -rf node_modules
-          npm i node@v20-lts --no-save
+          registry-url: "https://registry.npmjs.org"
 
       # Trusted publishing requires npm 11.5.1 or later.
       - name: Update NPM for trusted publishing
         run: |
-          npm update -g npm
+          npm install -g npm@latest
           echo "npm: $(npm -v)"
 
+      - name: Install dependencies & build package
+        run: |
+          npm install
+          npm run build
+
       - name: Release (dry-run)
-        if: github.event_name == 'pull_request'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release --dry-run --no-ci
+        if: github.ref_name != 'master' && github.event_name == 'pull_request'
+        run: npm publish --dry-run
 
       - name: Release
-        if: github.event_name == 'push'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Override node 10 .npmrc created by Gihub Action
-          NPM_CONFIG_USERCONFIG: ./.npmrc
-        run: npx semantic-release
+        if: github.ref_name == 'master' && github.event_name != 'pull_request' && github.repository == 'swisspost/vertx-rest-storage-editor'
+        run: npm publish
