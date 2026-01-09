@@ -181,9 +181,29 @@ function del() {
 }
 
 function openHeader() {
-    $("#header-button").hide();
-    $("#new-header-container").show();
-    $("#new-header").focus();
+    BootstrapDialog.show({
+        title: 'Add Header',
+        message: '<input autocomplete="on" id="dialog-new-header" type="text" class="form-control" placeholder="New Header&hellip;">',
+        buttons: [{
+            label: 'Add',
+            cssClass: 'btn-primary',
+            action: function(dialog) {
+                var headerValue = $('#dialog-new-header').val();
+                if(headerValue) {
+                    addHeader(headerValue);
+                    dialog.close();
+                }
+            }
+        }, {
+            label: 'Cancel',
+            action: function(dialog) {
+                dialog.close();
+            }
+        }],
+        onshown: function(dialog) {
+            $('#dialog-new-header').focus();
+        }
+    });
 }
 
 function closeHeader() {
